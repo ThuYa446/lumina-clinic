@@ -6,6 +6,8 @@ The subsequent [GitHub Actions run](https://github.com/ThuYa446/lumina-clinic/ac
 
 All **3 browser tests also passed against Neon** using the production profile: booking, payment/retry protection, reload, cancellation, staff refund recording, mobile layout and private-link access checks. This run took 59.7 seconds because the local application connected across regions to Ohio; the Render blueprint now selects Ohio alongside the database. The temporary local verification process was stopped afterward to release its connections. See the [Neon verification summary](test-evidence/neon-summary.txt).
 
+A subsequent CI run exposed a browser-test timing issue: changing dates can cancel an availability request after its headers arrive, making Chromium's response body unavailable to the test. The browser check now retrieves availability through the independent API request client and waits for matching Myanmar times in the UI. All three browser tests passed three consecutive local repetitions (**9 executions**, 22.6 seconds); the time-zone assertions remain in place.
+
 ## Final results
 
 | Check | Actual result |

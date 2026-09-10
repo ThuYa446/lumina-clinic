@@ -26,6 +26,9 @@ test('client books, pays once, reloads, cancels and reception records the refund
     if (message.type() === 'error') errors.push(message.text());
   });
   const date = appointmentDate();
+  const catalogResponse = await page.request.get('/api/catalog');
+  expect(catalogResponse.ok()).toBeTruthy();
+  const catalog = await catalogResponse.json();
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Make time for yourself.' })).toBeVisible();
   await expect(page.locator('.branch-card')).toHaveCount(6);
@@ -45,12 +48,18 @@ test('client books, pays once, reloads, cancels and reception records the refund
   await page.locator('.treatment-card').first().click();
   await page.locator('.branch-card').first().click();
   await page.getByRole('button', { name: 'Choose a time' }).click();
-  const availabilityResponse = page.waitForResponse(
-    (response) =>
-      response.url().includes('/api/availability?') && response.url().includes(`date=${date}`),
-  );
   await page.getByLabel('Appointment date').fill(date);
-  const availability = await (await availabilityResponse).json();
+  // Date edits can cancel browser requests. Read the API independently, then
+  // wait for the UI to show the same Myanmar time from the completed response.
+  const availabilityResponse = await page.request.get('/api/availability', {
+    params: {
+      branchId: catalog.branches[0].id,
+      treatmentId: catalog.treatments[0].id,
+      date,
+    },
+  });
+  expect(availabilityResponse.ok()).toBeTruthy();
+  const availability = await availabilityResponse.json();
   expect(availability.timeZone).toBe('Asia/Yangon');
   const chosenTime = new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Asia/Yangon',
