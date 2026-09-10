@@ -1,0 +1,19 @@
+GitHub Actions run: https://github.com/ThuYa446/lumina-clinic/actions/runs/34443155497
+Commit: ec049399ca23d6a13ae4d1d5558965e8026f4575
+Runner: ubuntu-latest; PostgreSQL service: 17; outcome: success
+
+2026-09-10T05:58:54.3658718Z [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.215 s -- in com.lumina.clinic.payment.DemoPaymentGatewayTest
+2026-09-10T05:58:54.3723386Z [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 s -- in com.lumina.clinic.config.ProductionConfigurationTest
+2026-09-10T05:58:54.4008568Z [INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.037 s -- in com.lumina.clinic.booking.BookingPolicyTest
+2026-09-10T05:58:54.4076516Z [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in com.lumina.clinic.booking.DemoMembershipVerifierTest
+2026-09-10T05:58:55.3283916Z [INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.914 s -- in com.lumina.clinic.booking.BookingTest
+2026-09-10T05:58:55.4041567Z [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.074 s -- in com.lumina.clinic.booking.ResourceAvailabilityTest
+2026-09-10T05:58:55.4502993Z [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.044 s -- in com.lumina.clinic.booking.BookingTokenServiceTest
+2026-09-10T05:58:55.4737288Z [INFO] Tests run: 30, Failures: 0, Errors: 0, Skipped: 0
+2026-09-10T05:58:58.1617643Z [INFO]  Test Files  3 passed (3)
+2026-09-10T05:58:58.1618032Z [INFO]       Tests  6 passed (6)
+2026-09-10T05:59:11.2192190Z [INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.919 s -- in com.lumina.clinic.BookingApiIT
+2026-09-10T05:59:11.7501656Z [INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0
+2026-09-10T05:59:13.0568120Z [INFO] BUILD SUCCESS
+2026-09-10T05:59:13.0569097Z [INFO] Total time:  01:00 min
+2026-09-10T05:59:57.5614543Z   3 passed (7.1s)

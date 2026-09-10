@@ -6,7 +6,7 @@ The implementation uses encapsulated domain state, constructor injection, policy
 
 **Source:** [ThuYa446/lumina-clinic](https://github.com/ThuYa446/lumina-clinic), branch `main`. GitHub Actions verifies the integrated build, PostgreSQL rules and browser flow. Render is configured to deploy `main` after its checks pass.
 
-**Deployment status:** verified locally; Render and Neon account setup is pending, so there is no verified public URL yet. [Deploy this repository to Render](https://render.com/deploy?repo=https://github.com/ThuYa446/lumina-clinic). The [deployment guide](docs/deployment.md) explains the required database and secret values. Deployment configuration alone does not complete the exercise's live-URL requirement.
+**Deployment status:** GitHub CI passed all 49 tests, and the production configuration connects to Neon with verified TLS. Render authentication succeeded, but creating the Free service returned HTTP 402 (`Payment information is required`). A public URL is pending that account requirement. [Deploy this repository to Render](https://render.com/deploy?repo=https://github.com/ThuYa446/lumina-clinic). The [deployment guide](docs/deployment.md) explains the database and secret values.
 
 **Demo with production-oriented structure:** payments are simulated and membership uses one configured demo code/email. Use fictional client details. Actual clinic launch still requires the integrations and operations work under Not done.
 

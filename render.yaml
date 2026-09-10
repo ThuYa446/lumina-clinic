@@ -7,7 +7,7 @@ services:
     branch: main
     autoDeployTrigger: checksPass
     plan: free
-    region: singapore
+    region: ohio
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /actuator/health

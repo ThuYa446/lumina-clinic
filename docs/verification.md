@@ -1,6 +1,10 @@
 # Verification record
 
-Executed on **10 September 2026** in the supplied Windows workspace. The final application was built from source with Microsoft OpenJDK **17.0.18**, Maven wrapper **3.9.11**, Maven-managed Node **24.15.0** / npm **11.11.1**, and PostgreSQL **16.2** in a separate local cluster on port 55432. The user's existing PostgreSQL service was not changed. Production configuration targets PostgreSQL 17; a PostgreSQL 17 service is configured in CI and Compose, but was not run locally.
+Executed on **10 September 2026** in the supplied Windows workspace. The final application was built from source with Microsoft OpenJDK **17.0.18**, Maven wrapper **3.9.11**, Maven-managed Node **24.15.0** / npm **11.11.1**, and PostgreSQL **16.2** in a separate local cluster on port 55432. The user's existing PostgreSQL service was not changed. Compose targets PostgreSQL 17; the subsequent CI and Neon checks are recorded below.
+
+The subsequent [GitHub Actions run](https://github.com/ThuYa446/lumina-clinic/actions/runs/34443155497) for commit `ec049399ca23d6a13ae4d1d5558965e8026f4575` passed on Ubuntu with JDK 17 and PostgreSQL 17: all **49 tests** passed, and GitHub stored the test reports and deployable JAR. Its [actual log summary](test-evidence/github-ci-summary.txt) is included here. The owner's new Neon PostgreSQL **18.6** database also passed production-profile startup, all four Flyway migrations, Hibernate schema validation, verified TLS connectivity and Myanmar catalog/health checks. The bundled Flyway version warns that its advertised PostgreSQL support ends at 17; PostgreSQL 18 results are specific to this observed deployment check.
+
+All **3 browser tests also passed against Neon** using the production profile: booking, payment/retry protection, reload, cancellation, staff refund recording, mobile layout and private-link access checks. This run took 59.7 seconds because the local application connected across regions to Ohio; the Render blueprint now selects Ohio alongside the database. The temporary local verification process was stopped afterward to release its connections. See the [Neon verification summary](test-evidence/neon-summary.txt).
 
 ## Final results
 
@@ -41,4 +45,4 @@ The Myanmar update passed **49 tests in total** (30 Java unit, 10 PostgreSQL int
 
 ## Boundaries
 
-Docker configuration was parsed, but the Docker daemon was not available for an actual image build/container run. The GitHub Actions workflow is configured to build, run PostgreSQL 17 tests, start the JAR and run Chromium; it has not executed remotely because no repository was connected. No Render/Neon resources were provisioned and no public deployment URL was verified. No real payment, membership provider, WhatsApp/email delivery or production load test was performed. These are recorded limitations, not passing checks.
+Docker configuration was parsed, but the Docker daemon was not available for an actual image build/container run. GitHub Actions has now passed remotely with PostgreSQL 17 and Chromium. Neon is connected and the application schema is provisioned. Render authentication succeeded, but service creation with `plan: free` returned HTTP 402 (`Payment information is required`); no Render service or public deployment URL has been verified. No real payment, membership provider, WhatsApp/email delivery or production load test was performed. These are recorded limitations, not passing checks.

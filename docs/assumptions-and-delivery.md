@@ -32,7 +32,7 @@ The code demonstrates independently calculated availability, resource reservatio
 - Staff access is a single configured account, not identity-provider SSO, MFA, individual accounts, access review or a complete audit trail.
 - The diary does not yet provide the full operations workflow: booking import, authenticated assisted bookings, roster editing, equipment downtime and staff overrides.
 - Retention/deletion automation, clinical consent, reminders, waiting lists and rescheduling need defined policies and further implementation.
-- The deployment files are prepared for free hosting. A live URL requires the account owner to connect a source repository and enter Render/Neon credentials. Do not describe an unprovisioned service as deployed.
+- Source is pushed to GitHub and CI passed. Render and Neon authentication succeeded, and the Neon schema is provisioned. Render currently rejects Free service creation with HTTP 402 until its account payment-information requirement is resolved. A public URL remains pending; see the verification record for observed results.
 - The free review environment is not a production service commitment. Recovery procedures, monitoring alerts, load testing, backup policy and payment/security reviews are launch gates.
 
 ## Delivery milestones

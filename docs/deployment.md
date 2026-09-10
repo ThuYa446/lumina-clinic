@@ -2,6 +2,8 @@
 
 **Provider documentation checked 10 September 2026.** This repository contains deployment configuration; an online service has not been provisioned by these files alone. A verified public URL requires access to the account owner's Git repository, Render account and Neon database. Do not put credentials in source control or claim a URL that has not passed the checks below.
 
+**Current attempt:** source is pushed, GitHub CI passed, both providers are authenticated, and the Neon schema is provisioned. Render returned HTTP 402 (`Payment information is required`) when creating the explicitly Free web service. Resolve the requirement in the owner's Render workspace before retrying. The service has not been created and there is no verified public URL yet. The API documents this response as requiring payment information. [Render service creation responses](https://api-docs.render.com/reference/create-service).
+
 ## Architecture and free-tier limits
 
 ```mermaid
@@ -44,7 +46,7 @@ The `.env` file is read by Docker Compose, not automatically by Spring or Maven.
 ## 2. Create a Neon Free database
 
 1. Create/sign in to a Neon account and keep the **Free** plan.
-2. Create a project, select PostgreSQL **17**, and choose the closest available region to the Render service (the blueprint selects Singapore). Name the database `neondb` or record the name you choose.
+2. This deployment uses the owner's `LuminaClinic` project with PostgreSQL **18** in AWS Ohio (`aws-us-east-2`); the Render blueprint selects `ohio` to match. CI verifies PostgreSQL **17** as well. For a new deployment, choose a supported PostgreSQL version and keep the database and Render regions close. Name the database `neondb` or record the name you choose.
 3. Open **Connect** and select the **direct/unpooled** endpoint. Record the hostname, database, role and password privately. Five application connections are sufficient for this review service. Direct connections also keep Flyway's connection/session behaviour straightforward.
 4. Use a role allowed to create the schema and the supported `btree_gist` extension. The first Flyway migration enables it automatically; no manual application-table creation is needed. [Neon btree_gist support](https://neon.com/docs/extensions/btree_gist).
 
