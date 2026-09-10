@@ -1,0 +1,36 @@
+# Creates one FREE demo web service. Provision Neon Free separately; no paid DB here.
+services:
+  - type: web
+    name: lumina-clinic
+    runtime: docker
+    repo: https://github.com/ThuYa446/lumina-clinic
+    branch: main
+    autoDeployTrigger: checksPass
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: PORT
+        value: 8080
+      - key: DATABASE_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: STAFF_USERNAME
+        value: receptionist
+      - key: STAFF_PASSWORD
+        sync: false
+      - key: BOOKING_TOKEN_SECRET
+        generateValue: true
+      - key: DEMO_MEMBER_CODE
+        sync: false
+      - key: DEMO_MEMBER_EMAIL
+        value: member@example.com
+      - key: DEMO_PAYMENTS_ENABLED
+        value: "true"

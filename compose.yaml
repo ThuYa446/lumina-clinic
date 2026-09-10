@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: lumina
+      POSTGRES_USER: ${DB_USERNAME:-lumina}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-lumina-local-only}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - lumina-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  app:
+    build: .
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/lumina
+      DB_USERNAME: ${DB_USERNAME:-lumina}
+      DB_PASSWORD: ${DB_PASSWORD:-lumina-local-only}
+      STAFF_USERNAME: ${STAFF_USERNAME:-receptionist}
+      STAFF_PASSWORD: ${STAFF_PASSWORD:-local-reception-only}
+      BOOKING_TOKEN_SECRET: ${BOOKING_TOKEN_SECRET:-local-demo-token-secret-change-before-deploy-123456789}
+      DEMO_MEMBER_CODE: ${DEMO_MEMBER_CODE:-LUMINA-DEMO}
+      DEMO_MEMBER_EMAIL: ${DEMO_MEMBER_EMAIL:-member@example.com}
+      DEMO_PAYMENTS_ENABLED: ${DEMO_PAYMENTS_ENABLED:-true}
+      SPRING_PROFILES_ACTIVE: local
+      PORT: 8080
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    mem_limit: 512m
+
+volumes:
+  lumina-data:

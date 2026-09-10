@@ -1,0 +1,6 @@
+* text=auto
+mvnw text eol=lf
+*.sh text eol=lf
+*.cmd text eol=crlf
+# Preserve verbatim tool output and unified diffs used as exercise evidence.
+docs/test-evidence/* -whitespace

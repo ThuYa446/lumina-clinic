@@ -1,16 +1,23 @@
-# Compiled class file
-*.class
-
-# Log file
+/.tools/
+/target/
+/.env
+/.env.*
+!/.env.example
+/.metadata/
+/.idea/
+/.vscode/
+*.iml
 *.log
-
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
+src/main/frontend/node_modules/
+src/main/frontend/dist/
+src/main/frontend/.angular/
+src/main/frontend/coverage/
+src/main/frontend/playwright-report/
+src/main/frontend/test-results/
+/.local/
+/.tmp/
+/*.zip
+*.class
 *.jar
 *.war
 *.nar
@@ -18,7 +25,7 @@
 *.zip
 *.tar.gz
 *.rar
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+*.ctxt
+.mtj.tmp/
 hs_err_pid*
 replay_pid*

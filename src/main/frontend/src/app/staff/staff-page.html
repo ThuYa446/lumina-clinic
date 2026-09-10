@@ -1,0 +1,139 @@
+<section class="staff-page">
+  <div class="section-intro">
+    <div>
+      <span class="eyebrow">BEHIND THE CARE</span>
+      <h1>Clinic team.</h1>
+      <p>The day’s appointments, thoughtfully organised.</p>
+    </div>
+    @if (signedIn()) {
+      <button class="button secondary" (click)="logout()">Sign out</button>
+    }
+  </div>
+  @if (error()) {
+    <div class="notice error" role="alert">{{ error() }}</div>
+  }
+  @if (message()) {
+    <div class="notice success" role="status">{{ message() }}</div>
+  }
+  @if (!signedIn()) {
+    <form class="standalone-card login-card" [formGroup]="loginForm" (ngSubmit)="login()">
+      <h2>A space for our team.</h2>
+      <p>Use the staff credentials configured for this deployment.</p>
+      <label class="field"
+        >Username<input formControlName="username" autocomplete="username" required /></label
+      ><label class="field"
+        >Password<input
+          formControlName="password"
+          type="password"
+          autocomplete="current-password"
+          required /></label
+      ><button class="button primary" type="submit" [disabled]="loading() || loginForm.invalid">
+        {{ loading() ? 'Signing in…' : 'Sign in' }}
+      </button>
+      <p class="small muted">
+        Your credentials remain in memory and are cleared when you sign out or close this page.
+      </p>
+    </form>
+  } @else {
+    <form class="staff-filters" [formGroup]="filterForm" (ngSubmit)="load()">
+      <label class="field">Date<input type="date" formControlName="date" required /></label
+      ><label class="field"
+        >Clinic<select formControlName="branchId">
+          <option value="">All clinics</option>
+          @for (branch of branches(); track branch.id) {
+            <option [value]="branch.id">{{ branch.name }}</option>
+          }
+        </select></label
+      ><button class="button primary" [disabled]="loading() || filterForm.invalid">
+        {{ loading() ? 'Loading…' : 'View appointments' }}
+      </button>
+    </form>
+    @if (!loading() && !bookings().length) {
+      <div class="empty-state">
+        <h2>A little breathing room.</h2>
+        <p>No bookings match this date and clinic.</p>
+      </div>
+    }
+    @if (bookings().length) {
+      <div class="table-wrap">
+        <table>
+          <caption>
+            {{
+              bookings().length
+            }}
+            appointments · All times Myanmar (UTC+06:30)
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Time / clinic</th>
+              <th scope="col">Client</th>
+              <th scope="col">Treatment / therapist</th>
+              <th scope="col">Status</th>
+              <th scope="col">Payment</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (booking of bookings(); track booking.id) {
+              <tr>
+                <td>
+                  <strong>{{ booking.startsAt | date: 'HH:mm' }}</strong
+                  ><small>{{ booking.branchName }}</small>
+                </td>
+                <td [attr.data-booking-id]="booking.id">
+                  {{ booking.clientName }}<small>{{ booking.member ? 'Member' : 'Guest' }}</small>
+                </td>
+                <td>
+                  {{ booking.treatmentName
+                  }}<small>{{ booking.therapistName }} · {{ booking.roomName }}</small>
+                </td>
+                <td>
+                  <span class="status-badge" [class.confirmed]="booking.status === 'CONFIRMED'">{{
+                    booking.status.replaceAll('_', ' ')
+                  }}</span>
+                </td>
+                <td>
+                  {{ booking.paymentStatus.replaceAll('_', ' ') }}
+                  <small>{{
+                    booking.depositAmount | currency: booking.currency : 'code' : '1.0-0'
+                  }}</small>
+                  @if (booking.paymentStatus === 'REFUND_PENDING') {
+                    <button class="text-button" (click)="startRefund(booking.id)">
+                      Record demo refund
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    @if (refundId()) {
+      <form class="standalone-card refund-card" [formGroup]="refundForm" (ngSubmit)="refund()">
+        <h2>Record a demo refund.</h2>
+        <p>
+          Record the reference after processing the simulated refund for booking {{ refundId() }}.
+        </p>
+        <label class="field"
+          >Refund reference<input formControlName="reference" maxlength="100" required
+        /></label>
+        <div class="button-row">
+          <button
+            class="button primary"
+            type="submit"
+            [disabled]="refundBusy() || refundForm.invalid"
+          >
+            {{ refundBusy() ? 'Saving…' : 'Record refund' }}</button
+          ><button
+            class="button secondary"
+            type="button"
+            [disabled]="refundBusy()"
+            (click)="refundId.set('')"
+          >
+            Close
+          </button>
+        </div>
+      </form>
+    }
+  }
+</section>

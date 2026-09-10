@@ -1,0 +1,11 @@
+logging:
+  level:
+    root: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: OFF
+server:
+  servlet:
+    session:
+      cookie:
+        secure: true

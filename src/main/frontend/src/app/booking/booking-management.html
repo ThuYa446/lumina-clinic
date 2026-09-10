@@ -1,0 +1,219 @@
+<section class="manage-page">
+  <a class="text-link" routerLink="/">← Back to the clinic</a>
+  <div class="manage-heading">
+    <span class="eyebrow">YOUR MOMENT OF CARE</span>
+    <h1>Your appointment.</h1>
+    <p>Everything you need, in one calm place.</p>
+  </div>
+  @if (!hasAccess()) {
+    <form class="standalone-card" (ngSubmit)="unlock()">
+      <h2>Your private booking link</h2>
+      <p>
+        Open the complete private link saved when you booked, or enter your management token to
+        access this appointment.
+      </p>
+      <label class="field"
+        >Management token<input
+          name="token"
+          [(ngModel)]="accessCode"
+          type="password"
+          autocomplete="off"
+          required /></label
+      ><button class="button primary" type="submit">View appointment</button>
+    </form>
+  }
+  @if (loading() && !booking()) {
+    <div class="loading-panel" role="status">
+      <span class="spinner"></span> Finding your appointment…
+    </div>
+  }
+  @if (error()) {
+    <div class="notice error" role="alert">
+      {{ error() }}
+      @if (!booking() && hasAccess()) {
+        <button class="text-button" (click)="refresh()">Try again</button>
+      }
+    </div>
+  }
+  @if (message()) {
+    <div class="notice success" role="status">{{ message() }}</div>
+  }
+  @if (booking(); as appointment) {
+    <div class="manage-grid">
+      <div class="standalone-card appointment-card">
+        <span class="status-badge" [class.confirmed]="appointment.status === 'CONFIRMED'">{{
+          appointment.status.replaceAll('_', ' ')
+        }}</span>
+        <h2>
+          {{
+            appointment.status === 'CONFIRMED'
+              ? 'We’ll see you soon, ' + appointment.clientName + '.'
+              : appointment.status === 'PENDING_PAYMENT'
+                ? 'Your time is on hold.'
+                : appointment.status === 'CANCELLED'
+                  ? 'Until next time.'
+                  : 'Let’s find another moment.'
+          }}
+        </h2>
+        <p>
+          {{
+            appointment.status === 'CONFIRMED'
+              ? 'Your appointment is confirmed. We look forward to welcoming you.'
+              : appointment.status === 'PENDING_PAYMENT'
+                ? 'Complete the demo deposit to confirm your appointment.'
+                : appointment.status === 'CANCELLED'
+                  ? 'Your appointment has been cancelled and the time released.'
+                  : 'The payment hold expired. You can choose a new appointment when you’re ready.'
+          }}
+        </p>
+        <dl class="appointment-details">
+          <div>
+            <dt>Treatment</dt>
+            <dd>{{ appointment.treatmentName }}</dd>
+          </div>
+          <div>
+            <dt>Clinic</dt>
+            <dd>{{ appointment.branchName }}</dd>
+          </div>
+          <div>
+            <dt>Therapist</dt>
+            <dd>{{ appointment.therapistName }}</dd>
+          </div>
+          <div>
+            <dt>Date</dt>
+            <dd>{{ appointment.startsAt | date: 'EEEE, d MMMM y' }}</dd>
+          </div>
+          <div>
+            <dt>Time</dt>
+            <dd>
+              {{ appointment.startsAt | date: 'HH:mm' }}–{{ appointment.endsAt | date: 'HH:mm' }}
+              <small>Myanmar · UTC+06:30</small>
+            </dd>
+          </div>
+          <div>
+            <dt>Payment</dt>
+            <dd>
+              {{ appointment.paymentStatus.replaceAll('_', ' ') }}
+              @if (appointment.member) {
+                <span class="member-tag">Member</span>
+              }
+            </dd>
+          </div>
+        </dl>
+        <p class="reference">
+          Booking reference <code>{{ appointment.id }}</code>
+        </p>
+        <button class="button secondary" (click)="copyLink()">
+          Copy private booking link <span aria-hidden="true">↗</span>
+        </button>
+        <p class="small muted">
+          Save this link to return later. Anyone with it can manage your appointment. A confirmation
+          email is not sent in this demo.
+        </p>
+        @if (privateLink()) {
+          <label class="field"
+            >Private booking link<input
+              readonly
+              [value]="privateLink()"
+              (focus)="$any($event.target).select()"
+          /></label>
+        }
+      </div>
+      <aside class="manage-aside">
+        @if (appointment.status === 'PENDING_PAYMENT') {
+          <div class="payment-card">
+            <span class="eyebrow">ONE LAST LITTLE STEP</span>
+            <h3>Reserve your calm.</h3>
+            <div class="deposit-amount">
+              {{ appointment.depositAmount | currency: appointment.currency : 'code' : '1.0-0' }}
+            </div>
+            <p>Appointment deposit</p>
+            <div class="hold-timer">
+              Time remaining <strong>{{ countdown() }}</strong>
+            </div>
+            <div class="demo-notice">
+              <strong>DEMO PAYMENT</strong>
+              <p>
+                This button simulates a successful payment. No card details or real money are
+                involved.
+              </p>
+            </div>
+            <button
+              class="button primary full-width"
+              [disabled]="busy() || loading() || holdSeconds() === 0"
+              (click)="pay()"
+            >
+              {{ busy() ? 'Processing…' : 'Pay demo deposit & confirm' }}
+            </button>
+            @if (holdSeconds() === 0) {
+              <p class="field-error">The hold has expired. Please start a new booking.</p>
+            }
+          </div>
+        }
+        @if (appointment.paymentStatus === 'REFUND_PENDING') {
+          <div class="notice">
+            <strong>Your demo refund is pending.</strong>
+            <p>The clinic team will record the refund manually. No real payment was collected.</p>
+          </div>
+        }
+        @if (appointment.paymentStatus === 'REFUNDED') {
+          <div class="notice success">
+            <strong>Demo refund recorded.</strong>
+            <p>The clinic team has completed your simulated refund.</p>
+          </div>
+        }
+        <div class="policy-card">
+          <span aria-hidden="true" class="policy-icon">♡</span>
+          <h3>Plans can change.</h3>
+          <p>
+            Free cancellation is available at least 24 hours before your appointment. Paid deposits
+            are queued for manual refund by the clinic team.
+          </p>
+          @if (appointment.status === 'CONFIRMED' || appointment.status === 'PENDING_PAYMENT') {
+            @if (cancellationAllowed()) {
+              @if (!confirmCancel()) {
+                <button
+                  class="text-button danger-text"
+                  [disabled]="busy() || loading()"
+                  (click)="confirmCancel.set(true)"
+                >
+                  Cancel appointment
+                </button>
+              } @else {
+                <div class="cancel-confirm">
+                  <strong>Cancel this appointment?</strong>
+                  <p>Your reserved time will be released.</p>
+                  <div class="button-row">
+                    <button
+                      class="button danger"
+                      [disabled]="busy() || loading()"
+                      (click)="cancel()"
+                    >
+                      {{ busy() ? 'Cancelling…' : 'Yes, cancel' }}</button
+                    ><button
+                      class="button secondary"
+                      [disabled]="busy() || loading()"
+                      (click)="confirmCancel.set(false)"
+                    >
+                      Keep booking
+                    </button>
+                  </div>
+                </div>
+              }
+            } @else {
+              <p class="small">
+                Online cancellation is closed within 24 hours of the appointment. Please contact the
+                clinic team for assistance.
+              </p>
+            }
+          } @else {
+            <a class="button secondary" routerLink="/">Book a new appointment</a>
+          }
+        </div>
+        <button class="text-button" [disabled]="loading() || busy()" (click)="refresh()">
+          {{ loading() ? 'Refreshing…' : 'Refresh appointment status' }}
+        </button>
+      </aside>
+    </div>
+  }
+</section>

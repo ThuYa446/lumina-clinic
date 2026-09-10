@@ -1,0 +1,360 @@
+<section class="hero">
+  <div class="hero-copy">
+    <span class="eyebrow"><span class="tiny-line"></span> A LITTLE TIME, JUST FOR YOU</span>
+    <h1>Feel better.<br /><em>Come back to you.</em></h1>
+    <p>
+      A considered approach to care. Find your treatment, choose your clinic, and make room for a
+      moment of renewal.
+    </p>
+    <a class="text-link" href="#booking"
+      >Find your next appointment <span aria-hidden="true">↗</span></a
+    >
+  </div>
+  <div
+    class="hero-art"
+    role="img"
+    aria-label="Abstract sun and botanical leaves in warm natural tones"
+  >
+    <div class="sun"></div>
+    <div class="arch"></div>
+    <div class="stem stem-one"><i></i><i></i><i></i><i></i></div>
+    <div class="stem stem-two"><i></i><i></i><i></i></div>
+    <div class="art-caption">a pause.<br />a fresh beginning.</div>
+    <span class="art-orbit" aria-hidden="true">LUMINA — CARE, CONSIDERED —</span>
+  </div>
+</section>
+<section class="booking-section" id="booking" aria-labelledby="booking-heading">
+  <div class="section-intro">
+    <div>
+      <span class="eyebrow">YOUR WELLNESS, YOUR WAY</span>
+      <h2 id="booking-heading" tabindex="-1">Make time for yourself.</h2>
+    </div>
+    <p>A few simple steps to your next appointment.<br />All times are in Myanmar · UTC+06:30.</p>
+  </div>
+  @if (catalogLoading()) {
+    <div class="loading-panel" role="status">
+      <span class="spinner"></span> Getting the clinic ready for you…
+    </div>
+  } @else if (!catalog()) {
+    <div class="notice error" role="alert">
+      <p>{{ error() }}</p>
+      <button class="button secondary" (click)="loadCatalog()">Try again</button>
+    </div>
+  } @else {
+    <div class="booking-layout">
+      <div class="booking-main">
+        <ol class="steps" aria-label="Booking progress">
+          <li [class.current]="step() === 1" [class.complete]="step() > 1">
+            <span>{{ step() > 1 ? '✓' : '01' }}</span> Your treatment
+          </li>
+          <li [class.current]="step() === 2" [class.complete]="step() > 2">
+            <span>{{ step() > 2 ? '✓' : '02' }}</span> Your time
+          </li>
+          <li [class.current]="step() === 3"><span>03</span> Your details</li>
+        </ol>
+        @if (step() === 1) {
+          <div class="step-panel">
+            <div class="panel-heading">
+              <h3>What does your day need?</h3>
+              <p>Choose a treatment that feels right for you.</p>
+            </div>
+            <div class="treatment-list" role="group" aria-label="Choose a treatment">
+              @for (item of catalog()!.treatments; track item.id; let i = $index) {
+                <button
+                  type="button"
+                  class="treatment-card"
+                  [class.selected]="treatmentId() === item.id"
+                  [attr.aria-pressed]="treatmentId() === item.id"
+                  (click)="chooseTreatment(item.id)"
+                >
+                  <span class="treatment-icon" aria-hidden="true">{{
+                    i === 0 ? '◒' : i === 1 ? '✳' : '◈'
+                  }}</span
+                  ><span class="treatment-copy"
+                    ><strong>{{ item.name }}</strong
+                    ><span>{{ item.description }}</span
+                    ><small>{{ item.durationMinutes }} MINUTES</small></span
+                  ><span class="treatment-price"
+                    >{{ item.price | currency: catalog()!.currency : 'code' : '1.0-0'
+                    }}<span class="radio-mark" aria-hidden="true"></span
+                  ></span>
+                </button>
+              }
+            </div>
+            <div class="panel-heading clinic-heading">
+              <h3>Find your nearby calm.</h3>
+              <p>Select one of our {{ catalog()!.branches.length }} clinics.</p>
+            </div>
+            <div class="branch-grid" role="group" aria-label="Choose a clinic">
+              @for (item of catalog()!.branches; track item.id) {
+                <button
+                  type="button"
+                  class="branch-card"
+                  [class.selected]="branchId() === item.id"
+                  [attr.aria-pressed]="branchId() === item.id"
+                  (click)="chooseBranch(item.id)"
+                >
+                  <span class="location-symbol" aria-hidden="true">⌖</span
+                  ><span
+                    ><strong>{{ item.name }}</strong
+                    ><small>{{ item.address }}</small></span
+                  ><span class="radio-mark" aria-hidden="true"></span>
+                </button>
+              }
+            </div>
+            <div class="panel-actions">
+              <span class="muted small">A moment of care starts here.</span
+              ><button
+                class="button primary"
+                [disabled]="!treatmentId() || !branchId()"
+                (click)="goToStep(2)"
+              >
+                Choose a time <span aria-hidden="true">→</span>
+              </button>
+            </div>
+          </div>
+        }
+        @if (step() === 2) {
+          <div class="step-panel">
+            <div class="panel-heading">
+              <h3>A time that works for you.</h3>
+              <p>Live availability, with time between appointments for attentive care.</p>
+            </div>
+            <div class="form-grid">
+              <label class="field"
+                >Appointment date<input
+                  type="date"
+                  [min]="today"
+                  [value]="date()"
+                  (change)="changeDate($event)"
+                  required /></label
+              ><label class="field"
+                >Preferred therapist<select
+                  [value]="therapistId()"
+                  (change)="changeTherapist($event)"
+                >
+                  <option value="">Any available therapist</option>
+                  @for (therapist of therapists(); track therapist.id) {
+                    <option [value]="therapist.id">{{ therapist.name }}</option>
+                  }
+                </select></label
+              >
+            </div>
+            <div class="availability-label">
+              <h4>Available appointments</h4>
+              <button
+                class="text-button"
+                type="button"
+                (click)="refreshSlots()"
+                [disabled]="slotsLoading()"
+              >
+                Refresh
+              </button>
+            </div>
+            @if (slotsLoading()) {
+              <div class="loading-panel compact" role="status">
+                <span class="spinner"></span> Finding your moment…
+              </div>
+            } @else if (slotError()) {
+              <div class="notice error" role="alert">{{ slotError() }}</div>
+            } @else if (!slots().length) {
+              <div class="empty-state">
+                <span aria-hidden="true">◷</span>
+                <h4>A little change of plans.</h4>
+                <p>
+                  No appointments are available for this selection. Try another date or therapist.
+                </p>
+              </div>
+            } @else {
+              <div class="slot-grid" role="group" aria-label="Available appointment times">
+                @for (slot of slots(); track slot.startsAt + slot.therapistId) {
+                  <button
+                    class="slot"
+                    [class.selected]="selectedSlot() === slot"
+                    [attr.aria-pressed]="selectedSlot() === slot"
+                    (click)="selectedSlot.set(slot)"
+                  >
+                    <strong>{{ slot.startsAt | date: 'HH:mm' }}</strong
+                    ><span>{{ slot.therapistName }}</span>
+                  </button>
+                }
+              </div>
+            }
+            <p class="small muted">
+              Clinic hours {{ catalog()!.openingTime }}–{{ catalog()!.closingTime }} · Myanmar time
+              (UTC+06:30)
+            </p>
+            <div class="panel-actions">
+              <button class="text-button" (click)="goToStep(1)">← Back</button
+              ><button class="button primary" [disabled]="!selectedSlot()" (click)="goToStep(3)">
+                Your details <span aria-hidden="true">→</span>
+              </button>
+            </div>
+          </div>
+        }
+        @if (step() === 3) {
+          <form class="step-panel" [formGroup]="clientForm" (ngSubmit)="submit()">
+            <div class="panel-heading">
+              <h3>Let’s make it yours.</h3>
+              <p>Tell us who we’ll be welcoming.</p>
+            </div>
+            <label class="field"
+              >Full name<input
+                formControlName="name"
+                autocomplete="name"
+                placeholder="Your full name"
+                maxlength="100"
+                [attr.aria-invalid]="invalid('name')"
+                aria-describedby="name-error"
+              />
+              @if (invalid('name')) {
+                <span id="name-error" class="field-error">Enter your name (2–100 characters).</span>
+              }
+            </label>
+            <div class="form-grid">
+              <label class="field"
+                >Email address<input
+                  formControlName="email"
+                  autocomplete="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  [attr.aria-invalid]="invalid('email')"
+                  aria-describedby="email-error"
+                />
+                @if (invalid('email')) {
+                  <span id="email-error" class="field-error">Enter a valid email address.</span>
+                }</label
+              ><label class="field"
+                >Phone number<input
+                  formControlName="phone"
+                  autocomplete="tel"
+                  type="tel"
+                  placeholder="+95 9 123 456 789"
+                  [attr.aria-invalid]="invalid('phone')"
+                  aria-describedby="phone-error"
+                />
+                @if (invalid('phone')) {
+                  <span id="phone-error" class="field-error"
+                    >Enter a phone number with 7–25 characters.</span
+                  >
+                }
+              </label>
+            </div>
+            <div class="member-box">
+              <span class="member-icon" aria-hidden="true">✧</span>
+              <div>
+                <label class="field"
+                  >Already a member? <span class="optional">Optional</span
+                  ><input
+                    formControlName="membershipCode"
+                    placeholder="Enter your membership code"
+                    autocomplete="off"
+                    maxlength="100"
+                /></label>
+                <p class="small muted">
+                  Verified members can confirm without a deposit. Your code must match your
+                  registered email.
+                </p>
+              </div>
+            </div>
+            <div class="notice">
+              <strong>A little peace of mind.</strong>
+              <p>
+                Non-members reserve with a
+                {{ catalog()!.depositAmount | currency: catalog()!.currency : 'code' : '1.0-0' }}
+                deposit within {{ catalog()!.holdMinutes }} minutes. Free cancellation is available
+                at least 24 hours before your appointment. Later changes require the clinic team.
+              </p>
+              <p>This is a demonstration. Payment is simulated and no real money is collected.</p>
+            </div>
+            @if (error()) {
+              <div class="notice error" role="alert">{{ error() }}</div>
+            }
+            <div class="panel-actions">
+              <button
+                type="button"
+                class="text-button"
+                [disabled]="submitting()"
+                (click)="goToStep(2)"
+              >
+                ← Back</button
+              ><button type="submit" class="button primary" [disabled]="submitting()">
+                {{ submitting() ? 'Reserving your time…' : 'Reserve appointment' }}
+                <span aria-hidden="true">→</span>
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+      <aside class="booking-summary" aria-label="Your appointment summary">
+        <div class="summary-top">
+          <span class="eyebrow">A MOMENT FOR YOU</span>
+          <h3>Your appointment</h3>
+          <span class="summary-flower" aria-hidden="true">✳</span>
+        </div>
+        <div class="summary-content">
+          <dl>
+            <div>
+              <dt>TREATMENT</dt>
+              <dd>{{ treatment()?.name || 'Choose your treatment' }}</dd>
+              @if (treatment()) {
+                <small>{{ treatment()!.durationMinutes }} minutes of dedicated care</small>
+              }
+            </div>
+            <div>
+              <dt>CLINIC</dt>
+              <dd>{{ branch()?.name || 'Choose your clinic' }}</dd>
+            </div>
+            <div>
+              <dt>DATE & TIME</dt>
+              <dd>
+                @if (selectedSlot()) {
+                  {{ selectedSlot()!.startsAt | date: 'EEE, d MMM y' }}<br /><span
+                    >{{ selectedSlot()!.startsAt | date: 'HH:mm' }} ·
+                    {{ selectedSlot()!.therapistName }}</span
+                  >
+                } @else {
+                  Your perfect time awaits
+                }
+              </dd>
+            </div>
+          </dl>
+          <div class="summary-total">
+            <span>Treatment total</span
+            ><strong>{{
+              treatment()
+                ? (treatment()!.price | currency: catalog()!.currency : 'code' : '1.0-0')
+                : '—'
+            }}</strong>
+          </div>
+          <p class="small muted">
+            A
+            {{ catalog()!.depositAmount | currency: catalog()!.currency : 'code' : '1.0-0' }}
+            deposit reserves a non-member appointment. The remaining balance is settled at the
+            clinic.
+          </p>
+        </div>
+        <div class="summary-foot">
+          <span aria-hidden="true">♡</span> Thoughtful care, from the first step.
+        </div>
+      </aside>
+    </div>
+  }
+</section>
+<section class="care-strip" aria-label="Our approach">
+  <div>
+    <span aria-hidden="true">✧</span>
+    <h3>Care that’s personal.</h3>
+    <p>Your treatment. Your therapist. Your time.</p>
+  </div>
+  <div>
+    <span aria-hidden="true">◷</span>
+    <h3>Room to breathe.</h3>
+    <p>Thoughtfully scheduled, never rushed.</p>
+  </div>
+  <div>
+    <span aria-hidden="true">⌖</span>
+    <h3>A little closer to calm.</h3>
+    <p>Find a clinic that fits into your day.</p>
+  </div>
+</section>

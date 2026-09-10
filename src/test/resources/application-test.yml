@@ -1,0 +1,5 @@
+logging:
+  level:
+    root: WARN
+    org.springframework: WARN
+    com.lumina: INFO

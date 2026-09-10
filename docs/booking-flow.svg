@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="1390" viewBox="0 0 1120 1390" role="img" aria-labelledby="title desc">
+  <title id="title">Lumina client booking flow</title>
+  <desc id="desc">Choose treatment, branch, therapist and time. Recheck capacity in a transaction. A verified demo member confirms without a deposit; others receive a 15-minute hold and confirm after simulated payment. Conflicts and expired holds return to availability. Cancellation is allowed at least 24 hours before the appointment.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#55746a"/></marker>
+    <style>
+      text { font-family: Arial, sans-serif; fill: #203c33; text-anchor: middle; font-size: 17px; }
+      .label { font-size: 15px; fill: #4b665c; }
+      .box { fill: #fff; stroke: #6b9282; stroke-width: 2; }
+      .decision { fill: #f8f2de; stroke: #b5a05f; stroke-width: 2; }
+      .end { fill: #e1f0e8; stroke: #477b62; stroke-width: 2; }
+      .line { fill: none; stroke: #55746a; stroke-width: 2; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1120" height="1390" fill="#f5f8f4"/>
+  <text x="560" y="44" style="font-size:29px;font-weight:bold">Lumina · From availability to confirmation</text>
+  <text x="560" y="74" class="label">First-cut review build · payments and membership are demonstrations</text>
+
+  <rect class="end" x="380" y="105" width="360" height="58" rx="28"/>
+  <text x="560" y="141">Open the booking site</text>
+  <path class="line" d="M560 163 V193"/>
+  <rect class="box" x="360" y="193" width="400" height="80" rx="12"/>
+  <text x="560" y="226">Choose treatment, branch and date</text>
+  <text x="560" y="253">Optional preferred therapist</text>
+  <path class="line" d="M560 273 V303"/>
+  <rect class="box" x="360" y="303" width="400" height="90" rx="12"/>
+  <text x="560" y="333">Calculate suitable room + therapist times</text>
+  <text x="560" y="358">Include both turnaround intervals</text>
+  <text x="560" y="381" class="label">Release expired holds on this request</text>
+  <path class="line" d="M560 393 V423"/>
+  <rect class="box" x="360" y="423" width="400" height="86" rx="12"/>
+  <text x="560" y="454">Choose a time and enter contact details</text>
+  <text x="560" y="480">Review deposit and cancellation terms</text>
+  <path class="line" d="M560 509 V539"/>
+  <rect class="box" x="360" y="539" width="400" height="87" rx="12"/>
+  <text x="560" y="570">Submit with a stable idempotency key</text>
+  <text x="560" y="596">Transaction rechecks and reserves resources</text>
+  <path class="line" d="M560 626 V647"/>
+  <path class="decision" d="M560 647 L740 704 L560 761 L380 704 Z"/>
+  <text x="560" y="710">Still available?</text>
+  <path class="line" d="M380 704 H180 V348 H360"/>
+  <rect x="90" y="526" width="180" height="62" rx="8" fill="#f5f8f4"/>
+  <text x="180" y="549" class="label">No / conflicting request</text>
+  <text x="180" y="572" class="label">Refresh availability</text>
+  <text x="588" y="784" class="label">Yes</text>
+  <path class="line" d="M560 761 V800"/>
+  <path class="decision" d="M560 800 L740 857 L560 914 L380 857 Z"/>
+  <text x="560" y="852">Membership result?</text>
+  <text x="560" y="875" class="label">Invalid details: return to entry</text>
+  <path class="line" d="M740 857 H860 V1030"/>
+  <text x="848" y="836" class="label">Verified: waive deposit</text>
+  <rect class="end" x="780" y="1030" width="265" height="86" rx="12"/>
+  <text x="912" y="1066">Member confirmed</text>
+  <text x="912" y="1093" class="label">No deposit required</text>
+  <path class="line" d="M560 914 V956"/>
+  <text x="610" y="942" class="label">No code supplied</text>
+  <rect class="box" x="360" y="956" width="400" height="86" rx="12"/>
+  <text x="560" y="989">Hold room + therapist for 15 minutes</text>
+  <text x="560" y="1016">Show MMK 300 deposit</text>
+  <path class="line" d="M560 1042 V1072"/>
+  <rect class="box" x="360" y="1072" width="400" height="88" rx="12"/>
+  <text x="560" y="1104">Complete simulated payment before expiry</text>
+  <text x="560" y="1132">Lock booking; record one deposit on retries</text>
+  <path class="line" d="M360 999 H295 V348 H360"/>
+  <rect x="45" y="955" width="250" height="82" rx="8" fill="#f5f8f4"/>
+  <text x="170" y="980" class="label">Hold expired?</text>
+  <text x="170" y="1003" class="label">Release capacity on next request;</text>
+  <text x="170" y="1026" class="label">choose an available time again</text>
+  <path class="line" d="M560 1160 V1190"/>
+  <path class="line" d="M912 1116 V1225 H760"/>
+  <rect class="end" x="360" y="1190" width="400" height="74" rx="24"/>
+  <text x="560" y="1220">Show confirmation and private booking access</text>
+  <text x="560" y="1246" class="label">Keep the booking reference and access token private</text>
+
+  <rect x="60" y="1300" width="1000" height="64" rx="10" fill="#eaf0e9"/>
+  <text x="560" y="1326" class="label">Cancellation at least 24 hours before: release resources; paid deposit → refund pending.</text>
+  <text x="560" y="1351" class="label">Later cancellation: retain the booking and contact reception. Every room always gets 15 minutes cleaning.</text>
+</svg>

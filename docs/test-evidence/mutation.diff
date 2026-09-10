@@ -1,0 +1,11 @@
+--- a/src/main/java/com/lumina/clinic/booking/BookingPolicy.java
++++ b/src/main/java/com/lumina/clinic/booking/BookingPolicy.java
+@@ -13,7 +13,7 @@
+     public static final BigDecimal DEPOSIT = new BigDecimal("300.00");
+     public static final String CURRENCY = "MMK";
+     public static final int HOLD_MINUTES = 15;
+-    public static final int ROOM_TURNAROUND_MINUTES = 15;
++    public static final int ROOM_TURNAROUND_MINUTES = 0;
+     public static final int SLOT_MINUTES = 30;
+     public static final int MAX_ADVANCE_DAYS = 90;
+ 

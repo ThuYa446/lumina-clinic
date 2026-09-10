@@ -1,0 +1,78 @@
+name: Verify
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: lumina
+          POSTGRES_USER: lumina
+          POSTGRES_PASSWORD: ci-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lumina -d lumina"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      DATABASE_URL: jdbc:postgresql://localhost:5432/lumina
+      DB_USERNAME: lumina
+      DB_PASSWORD: ci-only-password
+      BOOKING_TOKEN_SECRET: ci-only-token-secret-with-at-least-thirty-two-characters
+      STAFF_PASSWORD: ci-only-staff-password
+      DEMO_MEMBER_CODE: LUMINA-DEMO
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-java@v6.0.1
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+      - name: Verify Java, Angular, and PostgreSQL invariants
+        run: chmod +x mvnw && ./mvnw -B -Ppostgres-it verify
+      - name: Start the packaged application
+        run: |
+          java -Xmx256m -jar target/lumina-clinic-1.0.0.jar > /tmp/lumina-app.log 2>&1 &
+          for attempt in $(seq 1 45); do
+            if curl --fail --silent http://localhost:8080/actuator/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/lumina-app.log
+          exit 1
+      - name: Verify the browser against the packaged JAR
+        working-directory: src/main/frontend
+        env:
+          E2E_STAFF_PASSWORD: ci-only-staff-password
+        run: |
+          "$GITHUB_WORKSPACE/target/frontend-toolchain/node/node" node_modules/@playwright/test/cli.js install --with-deps chromium
+          "$GITHUB_WORKSPACE/target/frontend-toolchain/node/node" node_modules/@playwright/test/cli.js test
+      - name: Preserve test evidence
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: test-reports
+          path: |
+            target/surefire-reports/
+            target/failsafe-reports/
+            src/main/frontend/playwright-report/
+            src/main/frontend/test-results/
+          if-no-files-found: ignore
+      - name: Preserve the deployable application
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: lumina-clinic
+          path: target/lumina-clinic-1.0.0.jar

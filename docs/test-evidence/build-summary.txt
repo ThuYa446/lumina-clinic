@@ -1,0 +1,17 @@
+[INFO]                     | Initial total      | 308.63 kB |                83.84 kB
+[INFO] Application bundle generation complete. [10.903 seconds] - 2026-09-10T05:40:18.132Z
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.199 s -- in com.lumina.clinic.booking.BookingPolicyTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.896 s -- in com.lumina.clinic.booking.BookingTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.078 s -- in com.lumina.clinic.booking.BookingTokenServiceTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in com.lumina.clinic.booking.DemoMembershipVerifierTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.182 s -- in com.lumina.clinic.booking.ResourceAvailabilityTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in com.lumina.clinic.config.ProductionConfigurationTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.037 s -- in com.lumina.clinic.payment.DemoPaymentGatewayTest
+[INFO] Tests run: 30, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Application bundle generation complete. [2.443 seconds] - 2026-09-10T05:40:32.767Z
+[INFO]  Test Files  3 passed (3)
+[INFO]       Tests  6 passed (6)
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.49 s -- in com.lumina.clinic.BookingApiIT
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+[INFO] Total time:  02:02 min

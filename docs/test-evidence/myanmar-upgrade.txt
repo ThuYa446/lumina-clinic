@@ -1,0 +1,5 @@
+Myanmar upgrade verified on 10 September 2026.
+Existing demo database upgraded from Flyway V3 to V4.
+Before/after complete booking and payment row checksums match: 2 bookings, 2 payments unchanged.
+Catalog returns all six Yangon locations, Asia/Yangon and MMK.
+Health endpoint reports UP.

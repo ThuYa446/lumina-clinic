@@ -1,0 +1,19 @@
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <a class="brand" routerLink="/" aria-label="Lumina Clinic home"
+    ><span class="brand-mark" aria-hidden="true">✳</span
+    ><span>LUMINA<small>WELLNESS CLINIC</small></span></a
+  >
+  <nav aria-label="Main navigation">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+      >Book a treatment</a
+    ><a routerLink="/staff" routerLinkActive="active">Clinic team</a
+    ><span class="demo-pill">DEMO EXPERIENCE</span>
+  </nav>
+</header>
+<main id="main"><router-outlet /></main>
+<footer class="site-footer">
+  <a class="footer-brand" routerLink="/">LUMINA <span>Space to feel like yourself.</span></a>
+  <p>Appointments in Myanmar time · MMT (UTC+06:30)</p>
+  <p>Take-home demonstration · No real payments</p>
+</footer>
