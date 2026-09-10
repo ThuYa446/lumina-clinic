@@ -42,9 +42,9 @@ test('client books, pays once, reloads, cancels and reception records the refund
   ]);
   await expect(page.locator('footer')).toContainText('Myanmar time · MMT (UTC+06:30)');
   await expect(page.locator('.treatment-card')).toContainText([
-    /MMK\s*20,000/,
-    /MMK\s*45,000/,
-    /MMK\s*70,000/,
+    /MMK\s*900/,
+    /MMK\s*1,600/,
+    /MMK\s*2,400/,
   ]);
   await expect(page.locator('.site-header')).toHaveCSS('display', 'flex');
   await expect(page.locator('.hero-art')).toHaveCSS('position', 'relative');

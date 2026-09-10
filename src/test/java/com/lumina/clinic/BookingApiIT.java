@@ -85,9 +85,9 @@ class BookingApiIT {
         assertThat(catalog.path("currency").asText()).isEqualTo("MMK");
         assertThat(catalog.path("depositAmount").decimalValue()).isEqualByComparingTo("300.00");
         assertThat(catalog.path("timeZone").asText()).isEqualTo("Asia/Yangon");
-        assertThat(catalog.path("treatments").get(0).path("price").decimalValue()).isEqualByComparingTo("20000.00");
-        assertThat(catalog.path("treatments").get(1).path("price").decimalValue()).isEqualByComparingTo("45000.00");
-        assertThat(catalog.path("treatments").get(2).path("price").decimalValue()).isEqualByComparingTo("70000.00");
+        assertThat(catalog.path("treatments").get(0).path("price").decimalValue()).isEqualByComparingTo("900.00");
+        assertThat(catalog.path("treatments").get(1).path("price").decimalValue()).isEqualByComparingTo("1600.00");
+        assertThat(catalog.path("treatments").get(2).path("price").decimalValue()).isEqualByComparingTo("2400.00");
         List<String> names = new ArrayList<>();
         for (JsonNode branch : catalog.path("branches")) {
             names.add(branch.path("name").asText());

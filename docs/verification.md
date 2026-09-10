@@ -52,3 +52,7 @@ The local Docker daemon was unavailable, but Render subsequently built the Docke
 ## Treatment price update
 
 Migration V5 sets Express facial to MMK 20,000, Signature facial to MMK 45,000 and Restorative body ritual to MMK 70,000. The backend build passed all 30 Java unit tests and 10 PostgreSQL integration tests; the catalogue contract asserts all three prices. All 3 browser tests passed in 13.5 seconds and assert the rendered prices. The existing local V4 database upgraded successfully, the packaged JAR includes V5, and desktop/mobile screenshots were refreshed. The deposit remains MMK 300.
+
+## Restore previous treatment prices
+
+Migration V6 restores the catalogue to MMK 900, MMK 1,600 and MMK 2,400, preserving V5 and existing payment records. All 30 Java unit tests and 10 PostgreSQL integration tests passed, including the restored catalogue price assertions. Browser expectations were updated; browser execution is left to CI for this change. Local packaging encountered the running app's JAR file lock, so verification used the test and Failsafe goals without replacing that JAR.

@@ -85,7 +85,7 @@ The Docker build executes the same Maven frontend/backend build. Open localhost:
 
 Times are **Asia/Yangon (Myanmar time, UTC+06:30)** and the deposit is **MMK 300 (Myanmar kyat)**, as requested. The six demonstration branches are **Bahan, Kamayut, Sanchaung, Tamwe, Thingangyun and Yankin** in Yangon. Monday–Saturday 09:00–18:00 hours, addresses, treatments, prices, rooms and therapists remain fictional demo data. Policy constants are centralized in `BookingPolicy`; Angular date formatting uses a shared Myanmar offset regardless of the visitor's browser time zone.
 
-Flyway migration V4 updates the existing demo branch records without changing their IDs. New bookings use MMK for their deposits and payments. Existing bookings retain their recorded amounts, currency and appointment instants; no exchange-rate conversion or appointment rescheduling is performed. Migration V5 sets the requested treatment prices: Express facial (30 minutes) **MMK 20,000**, Signature facial (60 minutes) **MMK 45,000**, and Restorative body ritual (90 minutes) **MMK 70,000**. The appointment deposit is MMK 300.
+Flyway migration V4 updates the existing demo branch records without changing their IDs. New bookings use MMK for their deposits and payments. Existing bookings retain their recorded amounts, currency and appointment instants; no exchange-rate conversion or appointment rescheduling is performed. Migration V6 restores the previous treatment prices: Express facial (30 minutes) **MMK 900**, Signature facial (60 minutes) **MMK 1,600**, and Restorative body ritual (90 minutes) **MMK 2,400**. The appointment deposit is MMK 300.
 
 ### Development and tests
 
