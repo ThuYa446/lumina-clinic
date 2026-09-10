@@ -6,7 +6,7 @@ The implementation uses encapsulated domain state, constructor injection, policy
 
 **Source:** [ThuYa446/lumina-clinic](https://github.com/ThuYa446/lumina-clinic), branch `main`. GitHub Actions verifies the integrated build, PostgreSQL rules and browser flow. Render is configured to deploy `main` after its checks pass.
 
-**Deployment status:** GitHub CI passed all 49 tests, and the production configuration connects to Neon with verified TLS. Render authentication succeeded, but creating the Free service returned HTTP 402 (`Payment information is required`). A public URL is pending that account requirement. [Deploy this repository to Render](https://render.com/deploy?repo=https://github.com/ThuYa446/lumina-clinic). The [deployment guide](docs/deployment.md) explains the database and secret values.
+**Live demo:** [lumina-clinic.onrender.com](https://lumina-clinic.onrender.com). The Render Free service runs in Ohio alongside Neon and deploys `main` after CI checks pass. Its health endpoint and Myanmar/MMK catalogue were verified on 10 September 2026. The [deployment guide](docs/deployment.md) explains the database and secret values.
 
 **Demo with production-oriented structure:** payments are simulated and membership uses one configured demo code/email. Use fictional client details. Actual clinic launch still requires the integrations and operations work under Not done.
 
@@ -19,7 +19,7 @@ The implementation uses encapsulated domain state, constructor injection, policy
 | Booking flowchart | [SVG](docs/booking-flow.svg), [Mermaid and explanation](docs/booking-flow.md) |
 | Working system | `src/main/java`, `src/main/frontend`, `src/main/resources/db/migration` |
 | Tests and actual failure proof | Java unit/integration, Angular and browser tests; [mutation evidence](docs/test-evidence/mutation-failure.txt) |
-| Deployment | [Render + Neon guide](docs/deployment.md), [blueprint](render.yaml), [container](Dockerfile); account connection pending |
+| Deployment | [Live demo](https://lumina-clinic.onrender.com), [Render + Neon guide](docs/deployment.md), [blueprint](render.yaml), [container](Dockerfile) |
 | Decisions and six-week plan | [Assumptions and delivery](docs/assumptions-and-delivery.md) |
 
 ## Run it
@@ -85,7 +85,7 @@ The Docker build executes the same Maven frontend/backend build. Open localhost:
 
 Times are **Asia/Yangon (Myanmar time, UTC+06:30)** and the deposit is **MMK 300 (Myanmar kyat)**, as requested. The six demonstration branches are **Bahan, Kamayut, Sanchaung, Tamwe, Thingangyun and Yankin** in Yangon. Monday–Saturday 09:00–18:00 hours, addresses, treatments, prices, rooms and therapists remain fictional demo data. Policy constants are centralized in `BookingPolicy`; Angular date formatting uses a shared Myanmar offset regardless of the visitor's browser time zone.
 
-Flyway migration V4 updates the existing demo branch records without changing their IDs. New bookings use MMK for their deposits and payments. Existing bookings retain their recorded amounts, currency and appointment instants; no exchange-rate conversion or appointment rescheduling is performed. Demo treatment prices remain 900, 1,600 and 2,400, now quoted in MMK.
+Flyway migration V4 updates the existing demo branch records without changing their IDs. New bookings use MMK for their deposits and payments. Existing bookings retain their recorded amounts, currency and appointment instants; no exchange-rate conversion or appointment rescheduling is performed. Migration V5 sets the requested treatment prices: Express facial (30 minutes) **MMK 20,000**, Signature facial (60 minutes) **MMK 45,000**, and Restorative body ritual (90 minutes) **MMK 70,000**. The appointment deposit is MMK 300.
 
 ### Development and tests
 

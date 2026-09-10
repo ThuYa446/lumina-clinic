@@ -47,4 +47,8 @@ The Myanmar update passed **49 tests in total** (30 Java unit, 10 PostgreSQL int
 
 ## Boundaries
 
-Docker configuration was parsed, but the Docker daemon was not available for an actual image build/container run. GitHub Actions has now passed remotely with PostgreSQL 17 and Chromium. Neon is connected and the application schema is provisioned. Render authentication succeeded, but service creation with `plan: free` returned HTTP 402 (`Payment information is required`); no Render service or public deployment URL has been verified. No real payment, membership provider, WhatsApp/email delivery or production load test was performed. These are recorded limitations, not passing checks.
+The local Docker daemon was unavailable, but Render subsequently built the Docker image and deployed the service successfully. GitHub Actions passed remotely with PostgreSQL 17 and Chromium. The [public demo](https://lumina-clinic.onrender.com) is live on the Free plan in Ohio with Neon; `/actuator/health` returned `UP`, and `/api/catalog` returned six Myanmar branches, Asia/Yangon and MMK on 10 September 2026. The owner completed service creation after the earlier API payment-information blocker. No real payment, membership provider, WhatsApp/email delivery or production load test was performed. These are recorded limitations, not passing checks.
+
+## Treatment price update
+
+Migration V5 sets Express facial to MMK 20,000, Signature facial to MMK 45,000 and Restorative body ritual to MMK 70,000. The backend build passed all 30 Java unit tests and 10 PostgreSQL integration tests; the catalogue contract asserts all three prices. All 3 browser tests passed in 13.5 seconds and assert the rendered prices. The existing local V4 database upgraded successfully, the packaged JAR includes V5, and desktop/mobile screenshots were refreshed. The deposit remains MMK 300.

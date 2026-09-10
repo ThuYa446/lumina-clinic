@@ -2,7 +2,7 @@
 
 **Provider documentation checked 10 September 2026.** This repository contains deployment configuration; an online service has not been provisioned by these files alone. A verified public URL requires access to the account owner's Git repository, Render account and Neon database. Do not put credentials in source control or claim a URL that has not passed the checks below.
 
-**Current attempt:** source is pushed, GitHub CI passed, both providers are authenticated, and the Neon schema is provisioned. Render returned HTTP 402 (`Payment information is required`) when creating the explicitly Free web service. Resolve the requirement in the owner's Render workspace before retrying. The service has not been created and there is no verified public URL yet. The API documents this response as requiring payment information. [Render service creation responses](https://api-docs.render.com/reference/create-service).
+**Live deployment:** [lumina-clinic.onrender.com](https://lumina-clinic.onrender.com). The owner created the Render Free service in Ohio, connected to the Neon database. `main` is configured to deploy after CI checks pass. Public health and Myanmar/MMK catalogue checks passed on 10 September 2026. The earlier API payment-information blocker is resolved for this service.
 
 ## Architecture and free-tier limits
 
