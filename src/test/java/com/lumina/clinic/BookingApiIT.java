@@ -10,6 +10,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -22,10 +23,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -146,6 +151,122 @@ class BookingApiIT {
     }
 
     @Test
+    void clientIdentityIsPersistedAndAvailableOnlyInTheStaffResponse() throws Exception {
+        Map<String, Object> request = requestAt("2026-09-14T09:00:00+06:30");
+        Map<String, Object> client = clientRequest("Test Client", "client@example.com");
+        client.put("idNumber", "  0012/ABC(N)001234  ");
+        request.put("client", client);
+        Reply created = api.post("/api/bookings", request, null, UUID.randomUUID());
+        assertThat(created.status()).describedAs(created.json().toString()).isEqualTo(201);
+        UUID id = UUID.fromString(created.json().path("id").asText());
+        assertThat(jdbc.queryForObject("SELECT client_id_number FROM bookings WHERE id=?", String.class, id))
+                .isEqualTo("0012/ABC(N)001234");
+        assertThat(jdbc.queryForObject("SELECT client_date_of_birth FROM bookings WHERE id=?", java.sql.Date.class, id).toLocalDate())
+                .isEqualTo(LocalDate.of(1990, 2, 3));
+
+        Reply staff = staffBookings();
+        assertThat(staff.status()).isEqualTo(200);
+        assertThat(staff.json().path("items").size()).isEqualTo(1);
+        JsonNode item = staff.json().path("items").get(0);
+        assertThat(item.path("id").asText()).isEqualTo(id.toString());
+        assertThat(item.path("clientIdNumber").asText()).isEqualTo("0012/ABC(N)001234");
+        assertThat(item.path("clientDateOfBirth").asText()).isEqualTo("1990-02-03");
+
+        Reply managed = api.get("/api/bookings/" + id, created.json().path("managementToken").asText());
+        assertThat(managed.status()).isEqualTo(200);
+        for (JsonNode response : List.of(created.json(), managed.json())) {
+            for (String field : List.of("idNumber", "dateOfBirth", "clientIdNumber", "clientDateOfBirth")) {
+                assertThat(response.findValues(field)).describedAs("Client response must omit %s", field).isEmpty();
+            }
+        }
+    }
+
+    @ParameterizedTest(name = "rejects {0} = {1}")
+    @MethodSource("invalidClientIdentity")
+    void requiresValidClientIdentityBeforeCreatingABooking(String field, String value) throws Exception {
+        Map<String, Object> request = requestAt("2026-09-14T09:00:00+06:30");
+        Map<String, Object> client = clientRequest("Test Client", "client@example.com");
+        if (value == null) client.remove(field);
+        else client.put(field, value);
+        request.put("client", client);
+
+        Reply response = api.post("/api/bookings", request, null, UUID.randomUUID());
+        assertThat(response.status()).describedAs(response.json().toString()).isEqualTo(400);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM bookings", Integer.class)).isZero();
+    }
+
+    static Stream<Arguments> invalidClientIdentity() {
+        return Stream.of(
+                Arguments.of("idNumber", null),
+                Arguments.of("idNumber", ""),
+                Arguments.of("idNumber", "   "),
+                Arguments.of("idNumber", "A".repeat(65)),
+                Arguments.of("idNumber", "12/ABC(N)\n123456"),
+                Arguments.of("dateOfBirth", null),
+                Arguments.of("dateOfBirth", ""),
+                Arguments.of("dateOfBirth", "2999-01-01"),
+                Arguments.of("dateOfBirth", "1990-02-30"),
+                Arguments.of("dateOfBirth", "not-a-date"));
+    }
+
+    @Test
+    void dateOfBirthUsesTheClinicCalendarDayAtMyanmarMidnight() throws Exception {
+        Map<String, Object> request = requestAt("2026-09-14T09:00:00+06:30");
+        Map<String, Object> client = clientRequest("Test Client", "client@example.com");
+        client.put("dateOfBirth", "2026-09-11");
+        request.put("client", client);
+        clock.set(Instant.parse("2026-09-10T17:29:59Z"));
+        assertThat(api.post("/api/bookings", request, null, UUID.randomUUID()).status()).isEqualTo(400);
+
+        clock.set(Instant.parse("2026-09-10T17:30:00Z")); // September 11, 00:00 in Myanmar.
+        Reply created = api.post("/api/bookings", request, null, UUID.randomUUID());
+        assertThat(created.status()).describedAs(created.json().toString()).isEqualTo(201);
+        assertThat(jdbc.queryForObject("SELECT client_date_of_birth FROM bookings", java.sql.Date.class).toLocalDate())
+                .isEqualTo(LocalDate.of(2026, 9, 11));
+
+        client.put("dateOfBirth", "2026-09-12");
+        assertThat(api.post("/api/bookings", request, null, UUID.randomUUID()).status()).isEqualTo(400);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM bookings", Integer.class)).isEqualTo(1);
+    }
+
+    @ParameterizedTest(name = "changed {0} cannot reuse a booking idempotency key")
+    @MethodSource("changedClientIdentity")
+    void bookingRetryRejectsChangedClientIdentity(String field, String value) throws Exception {
+        UUID key = UUID.randomUUID();
+        Map<String, Object> request = requestAt("2026-09-14T09:00:00+06:30");
+        Reply created = api.post("/api/bookings", request, null, key);
+        assertThat(created.status()).isEqualTo(201);
+        Map<String, Object> client = clientRequest("Test Client", "client@example.com");
+        client.put(field, value);
+        request.put("client", client);
+
+        assertThat(api.post("/api/bookings", request, null, key).status()).isEqualTo(409);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM bookings", Integer.class)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT client_id_number FROM bookings", String.class)).isEqualTo("12/ABC(N)123456");
+        assertThat(jdbc.queryForObject("SELECT client_date_of_birth FROM bookings", java.sql.Date.class).toLocalDate())
+                .isEqualTo(LocalDate.of(1990, 2, 3));
+    }
+
+    static Stream<Arguments> changedClientIdentity() {
+        return Stream.of(Arguments.of("idNumber", "12/ABC(N)654321"), Arguments.of("dateOfBirth", "1990-02-04"));
+    }
+
+    @Test
+    void legacyBookingsWithoutClientIdentityRemainReadable() throws Exception {
+        JsonNode booking = create();
+        UUID id = UUID.fromString(booking.path("id").asText());
+        jdbc.update("UPDATE bookings SET client_id_number=NULL, client_date_of_birth=NULL WHERE id=?", id);
+
+        Reply staff = staffBookings();
+        assertThat(staff.status()).isEqualTo(200);
+        JsonNode item = staff.json().path("items").get(0);
+        assertThat(item.path("id").asText()).isEqualTo(id.toString());
+        assertThat(item.path("clientIdNumber").isNull()).isTrue();
+        assertThat(item.path("clientDateOfBirth").isNull()).isTrue();
+        assertThat(api.get("/api/bookings/" + id, booking.path("managementToken").asText()).status()).isEqualTo(200);
+    }
+
+    @Test
     void paymentRetriesCannotChargeTwiceAndCancellationQueuesManualRefund() throws Exception {
         JsonNode booking = create();
         String path = "/api/bookings/" + booking.path("id").asText();
@@ -188,7 +309,7 @@ class BookingApiIT {
         request.remove("member");
         request.put("membershipCode", "TEST-MEMBER-300");
         assertThat(api.post("/api/bookings", request, null, UUID.randomUUID()).status()).isEqualTo(422);
-        request.put("client", Map.of("name", "Demo Member", "email", "member@example.com", "phone", "+95 9 123 456 789"));
+        request.put("client", clientRequest("Demo Member", "member@example.com"));
         Reply member = api.post("/api/bookings", request, null, UUID.randomUUID());
         assertThat(member.status()).isEqualTo(201);
         assertThat(member.json().path("status").asText()).isEqualTo("CONFIRMED");
@@ -263,10 +384,10 @@ class BookingApiIT {
     private void cloneReservation(UUID original, UUID room, UUID therapist) {
         jdbc.update("""
             INSERT INTO bookings (id,version,branch_id,treatment_id,therapist_id,room_id,client_name,client_email,
-              client_phone,member,starts_at,ends_at,room_occupied_until,therapist_occupied_until,hold_expires_at,
+              client_phone,client_id_number,client_date_of_birth,member,starts_at,ends_at,room_occupied_until,therapist_occupied_until,hold_expires_at,
               created_at,status,payment_status,deposit_amount,currency,idempotency_key,request_fingerprint)
             SELECT ?,version,branch_id,treatment_id,coalesce(?,therapist_id),coalesce(?,room_id),client_name,
-              client_email,client_phone,member,starts_at,ends_at,room_occupied_until,therapist_occupied_until,
+              client_email,client_phone,client_id_number,client_date_of_birth,member,starts_at,ends_at,room_occupied_until,therapist_occupied_until,
               hold_expires_at,created_at,status,payment_status,deposit_amount,currency,?,request_fingerprint
             FROM bookings WHERE id=?
             """, UUID.randomUUID(), therapist, room, UUID.randomUUID(), original);
@@ -285,8 +406,19 @@ class BookingApiIT {
         request.put("treatmentId", therapist.path("treatmentIds").get(0).asText());
         request.put("therapistId", therapist.path("id").asText());
         request.put("startsAt", start);
-        request.put("client", Map.of("name", "Test Client", "email", "client@example.com", "phone", "+95 9 123 456 789"));
+        request.put("client", clientRequest("Test Client", "client@example.com"));
         return request;
+    }
+
+    private Map<String, Object> clientRequest(String name, String email) {
+        return new LinkedHashMap<>(Map.of("name", name, "email", email, "phone", "+95 9 123 456 789",
+                "idNumber", "12/ABC(N)123456", "dateOfBirth", "1990-02-03"));
+    }
+
+    private Reply staffBookings() throws Exception {
+        return api.send("GET", "/api/staff/bookings?date=2026-09-14", null, null, null,
+                "Basic " + Base64.getEncoder().encodeToString("receptionist:integration-staff-password"
+                        .getBytes(java.nio.charset.StandardCharsets.UTF_8)));
     }
 
     record Reply(int status, JsonNode json) {}
@@ -315,10 +447,16 @@ class BookingApiIT {
     }
 
     static final class MutableClock extends Clock {
-        private final AtomicReference<Instant> time = new AtomicReference<>(NOW);
+        private final AtomicReference<Instant> time;
+        private final ZoneId zone;
+        MutableClock() { this(new AtomicReference<>(NOW), ZoneOffset.UTC); }
+        private MutableClock(AtomicReference<Instant> time, ZoneId zone) {
+            this.time = time;
+            this.zone = zone;
+        }
         void set(Instant instant) { time.set(instant); }
-        @Override public ZoneId getZone() { return ZoneOffset.UTC; }
-        @Override public Clock withZone(ZoneId zone) { return Clock.fixed(time.get(), zone); }
+        @Override public ZoneId getZone() { return zone; }
+        @Override public Clock withZone(ZoneId zone) { return new MutableClock(time, zone); }
         @Override public Instant instant() { return time.get(); }
     }
 

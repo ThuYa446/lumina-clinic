@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="1390" viewBox="0 0 1120 1390" role="img" aria-labelledby="title desc">
   <title id="title">Lumina client booking flow</title>
-  <desc id="desc">Choose treatment, branch, therapist and time. Recheck capacity in a transaction. A verified demo member confirms without a deposit; others receive a 15-minute hold and confirm after simulated payment. Conflicts and expired holds return to availability. Cancellation is allowed at least 24 hours before the appointment.</desc>
+  <desc id="desc">Choose treatment, branch, therapist and time. Enter contact details, client ID number and date of birth. Recheck capacity in a transaction. A verified demo member confirms without a deposit; others receive a 15-minute hold and confirm after simulated payment. Conflicts and expired holds return to availability. Cancellation is allowed at least 24 hours before the appointment.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#55746a"/></marker>
     <style>
@@ -29,8 +29,9 @@
   <text x="560" y="381" class="label">Release expired holds on this request</text>
   <path class="line" d="M560 393 V423"/>
   <rect class="box" x="360" y="423" width="400" height="86" rx="12"/>
-  <text x="560" y="454">Choose a time and enter contact details</text>
-  <text x="560" y="480">Review deposit and cancellation terms</text>
+  <text x="560" y="448">Choose a time and enter contact details</text>
+  <text x="560" y="473">Include client ID number and date of birth</text>
+  <text x="560" y="498" class="label">Review deposit and cancellation terms</text>
   <path class="line" d="M560 509 V539"/>
   <rect class="box" x="360" y="539" width="400" height="87" rx="12"/>
   <text x="560" y="570">Submit with a stable idempotency key</text>

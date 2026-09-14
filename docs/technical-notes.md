@@ -21,7 +21,7 @@ Code is grouped by domain feature (`booking`, `catalog`, `payment`) with cross-c
 | OOP / SOLID choice | Concrete implementation and purpose |
 |---|---|
 | Encapsulation | `Booking.reserve`, `confirmPayment`, `cancel`, `expireIfNecessary` and `recordManualRefund` own state transitions; no public setters allow arbitrary status changes |
-| Value object | `ClientDetails` groups normalized contact values independently of HTTP requests |
+| Value object | `ClientDetails` groups normalized contact values, client ID number and date of birth independently of HTTP requests |
 | Single responsibility | Controllers handle HTTP; policy handles business time; resource availability handles interval matching; the service coordinates persistence |
 | Open/closed and dependency inversion | `MembershipVerifier` and `PaymentGateway` are narrow ports; demo adapters can be replaced without changing the resource allocator |
 | Interface segregation | Membership verification and payment collection are separate contracts, with no oversized external-integration interface |
@@ -53,7 +53,7 @@ Rule IDs are stable so the README can map each rule to exact source lines and te
 | R12 | Online cancellation is allowed at exactly 24 hours before or earlier. It releases active resources; a paid deposit becomes `REFUND_PENDING`. A later request fails and retains the booking | `BookingPolicy.cancellationAllowed`; `Booking.cancel`; SQL active-state predicates |
 | R13 | A staff member may mark only a cancelled, refund-pending booking refunded, with a nonblank reference; an identical retry returns the same result | `StaffBookingController.RefundRequest`; `Booking.recordManualRefund` |
 | R14 | Private booking reads/payment/cancellation require the matching HMAC token. Every staff API requires the staff role; mutation requests require a CSRF token | `BookingTokenService.verify`; `SecurityConfiguration` |
-| R15 | Only the documented input fields are accepted. Contact fields are bounded and validated; client ID number and date of birth are neither accepted nor stored | `CreateBookingRequest`; `ClientDetails`; Jackson unknown-property rejection; schema |
+| R15 | Only documented input fields are accepted. New bookings require validated contact fields, a nonblank client ID number of at most 64 characters without control characters, and a valid calendar date of birth on or before today in Asia/Yangon. ID/DOB are stored per booking and returned only in the authenticated staff diary | `CreateBookingRequest`; `ApplicationConfiguration.validationClock`; `ClientDetails`; Jackson unknown-property rejection; V7 migration; staff/public response DTOs |
 
 MMK and Asia/Yangon (UTC+06:30) reflect the requested Myanmar settings. The currency, time zone, hours, 90-day horizon and hold length are centralized constants in `BookingPolicy`, not advertised environment settings. All seeded branch rooms are assumed suitable for all seeded treatments. Equipment compatibility, roster exceptions and branch-specific hours require new policy/data before a real rollout.
 
@@ -89,7 +89,7 @@ stateDiagram-v2
 
 Payment state is separate: members begin `NOT_REQUIRED`, nonmembers `UNPAID`; successful simulation becomes `PAID`; eligible paid cancellation becomes `REFUND_PENDING`; staff recording a manual refund reference becomes `REFUNDED`. Cancelling an already-cancelled booking is idempotent. The manual refund endpoint records an operational acknowledgement; it does not transfer funds.
 
-The create fingerprint hashes length-prefixed, normalized request fields using SHA-256. A lost response can be retried with the same key without a second reservation. Keep the original key after a network timeout. A deliberately changed booking request needs a new key. A terminal booking is still returned on replay; rebooking requires a fresh key and capacity check.
+The create fingerprint hashes length-prefixed, normalized request fields using SHA-256, including client ID number and date of birth. A lost response can be retried with the same key without a second reservation. Keep the original key after a network timeout. A deliberately changed booking request, including either identity field, needs a new key. A terminal booking is still returned on replay; rebooking requires a fresh key and capacity check.
 
 The demo payment ledger has unique booking ID, idempotency key and receipt reference. Branch serialization protects concurrent payment and cancellation paths; retries return the original receipt. The `DemoPaymentGateway` creates deterministic receipts without contacting a provider. Do not call this “exactly once” charging in a distributed system. A real gateway needs provider-side idempotency, signed webhooks, durable event deduplication and late-payment/refund reconciliation across database/gateway failures.
 
@@ -116,6 +116,8 @@ erDiagram
         string client_name
         string client_email
         string client_phone
+        string client_id_number
+        date client_date_of_birth
         boolean member
         timestamptz starts_at
         timestamptz ends_at
@@ -142,9 +144,11 @@ erDiagram
     }
 ```
 
-Booking rows snapshot end/turnaround times and deposit terms, so changing catalogue data does not retroactively change occupied intervals. Client contact information is embedded per booking; there is no clinical-patient record or general membership table. Times are Java `Instant` / PostgreSQL `timestamptz`; API offsets and displayed times use the explicit clinic zone. Currency uses `BigDecimal`/SQL numeric, not floating point. IDs and request keys are UUIDs. `@Version` additionally guards stale entity writes.
+Booking rows snapshot end/turnaround times and deposit terms, so changing catalogue data does not retroactively change occupied intervals. Client contact information, ID number and date of birth are embedded per booking for the clinic's consent records; there is no clinical-patient record or general membership table. Date of birth uses Java `LocalDate` / PostgreSQL `date`, so it has no time-zone conversion. Client ID numbers are text, preserving leading zeros and punctuation rather than imposing an unconfirmed national format. Times are Java `Instant` / PostgreSQL `timestamptz`; API offsets and displayed times use the explicit clinic zone. Currency uses `BigDecimal`/SQL numeric, not floating point. Booking/resource IDs and request keys are UUIDs. `@Version` additionally guards stale entity writes.
 
 Flyway migrations live in `src/main/resources/db/migration`; the initial schema creates constraints and indexes, the seed migration inserts fictional catalogue data, and V3 restricts treatment durations to the three supported values. Add a new migration for a change that has already been applied; do not edit an existing migration on a deployed database. Back up before migrations and rehearse restoration.
+
+V7 adds `client_id_number` and `client_date_of_birth` as nullable columns so existing bookings remain readable without fabricated identity data. A database check requires either both values or neither. New booking requests require both fields. `@PastOrPresent` uses the injected application `Clock` in `Asia/Yangon` through `ApplicationConfiguration.validationClock`, so future-date validation follows the clinic's calendar rather than the server's default zone. Strict JSON date parsing rejects impossible dates, including a non-leap-year February 29, instead of adjusting them. These are booking snapshots, so booking a second appointment does not update an earlier booking's values. The current system has no backfill or staff-edit workflow for missing legacy values.
 
 ## HTTP contract
 
@@ -159,7 +163,7 @@ All routes share the Angular origin. Mutations require the XSRF cookie/token han
 | `GET /api/bookings/{id}` | Retrieve with `X-Booking-Token` |
 | `POST /api/bookings/{id}/payments` | Simulate payment with `X-Booking-Token` and `Idempotency-Key` |
 | `POST /api/bookings/{id}/cancel` | Cancel with `X-Booking-Token` |
-| `GET /api/staff/bookings?date=…&branchId=…` | Basic authentication, staff role; branch filter optional |
+| `GET /api/staff/bookings?date=…&branchId=…` | Basic authentication, staff role; branch filter optional; includes client ID number and date of birth |
 | `POST /api/staff/bookings/{id}/refund` | Staff role; body `{"reference":"manual-refund-reference"}` |
 | `GET /actuator/health` | Public health status with database readiness, without diagnostic details |
 
@@ -171,18 +175,26 @@ Example create body (replace sample IDs and use a future offered slot):
   "treatmentId": "00000000-0000-0000-0000-000000000002",
   "therapistId": "00000000-0000-0000-0000-000000000003",
   "startsAt": "2026-10-01T10:00:00+06:30",
-  "client": {"name": "Demo Client", "email": "demo@example.com", "phone": "+95 9 123 456 789"},
+  "client": {
+    "name": "Demo Client",
+    "email": "demo@example.com",
+    "phone": "+95 9 123 456 789",
+    "idNumber": "DEMO-001234",
+    "dateOfBirth": "1995-04-12"
+  },
   "membershipCode": null
 }
 ```
 
 Client code first calls `/api/csrf`; Angular's built-in same-origin XSRF support echoes the cookie as `X-XSRF-TOKEN` on mutations. API clients must preserve that cookie and supply the header too. HTTP Basic is used only for the staff endpoints and must be carried over HTTPS on deployment. Errors use `application/problem+json` with a stable `code`, `status`, `detail` and optional `fieldErrors`; SQL and sensitive parameters are not included in responses.
 
+`client.idNumber` and `client.dateOfBirth` are required on creation. The ID number is a nonblank text value of at most 64 characters with no control characters. Date of birth must be a valid ISO `YYYY-MM-DD` calendar date on or before today in `Asia/Yangon`. The create and booking-management response contracts omit both fields. Authenticated staff diary responses expose `clientIdNumber` and `clientDateOfBirth`; both are `null` on legacy bookings, which the diary identifies as not recorded. Staff expand **Consent details** on a booking to view these values. They are personal details for consent records, not login credentials or booking-management tokens.
+
 ## Security and operational boundaries
 
 Booking management uses an HMAC-SHA256 capability derived from the booking UUID and server secret, compared in constant time. The UUID alone grants no private access. Tokens are sent in a header and must be treated as bearer secrets. This first cut has no token expiry, individual revocation or authenticated client-account recovery; changing the master secret invalidates existing derived tokens.
 
-Production startup rejects short/default credentials. Staff passwords are encoded with BCrypt in the in-memory account store. Browser protections include CSRF, content security policy, frame blocking and a no-referrer policy. Angular critical CSS inlining is disabled so styles load through a normal stylesheet link without a CSP-blocked inline onload handler. Browser regression tests verify applied styles and reject console errors. Unknown JSON fields are rejected. Ordinary API requests with a declared body over 32 KB are rejected; a proxy/body streaming limit is still needed to bound chunked requests. Rate limiting, individual staff identity/MFA, a durable audit log, retention/deletion workflows and clinical consent remain unfinished.
+Production startup rejects short/default credentials. Staff passwords are encoded with BCrypt in the in-memory account store. Browser protections include CSRF, content security policy, frame blocking and a no-referrer policy. Angular critical CSS inlining is disabled so styles load through a normal stylesheet link without a CSP-blocked inline onload handler. Browser regression tests verify applied styles and reject console errors. Unknown JSON fields are rejected. Ordinary API requests with a declared body over 32 KB are rejected; a proxy/body streaming limit is still needed to bound chunked requests. Rate limiting, individual staff identity/MFA, a durable audit log, retention/deletion workflows and consent-form completion/signing remain unfinished. Saving an ID number and date of birth does not record signed treatment consent.
 
 The Spring runtime serves static frontend assets and the API; PostgreSQL persists bookings independently of container restarts. The deployment guide specifies a nonroot container, JVM memory budget, verified database TLS and health checks. The application performs no payment notifications or scheduled reminders. Record test evidence, operational limitations and actual deployment status in the README, and complete the [launch work](assumptions-and-delivery.md) before accepting real clients.
 

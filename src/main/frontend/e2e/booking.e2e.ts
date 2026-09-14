@@ -78,6 +78,47 @@ test('client books, pays once, reloads, cancels and reception records the refund
   await page.getByLabel('Email address').fill('browser-test@example.com');
   await page.getByLabel('Phone number').fill('+95 9 123 456 789');
   await page.getByRole('button', { name: 'Reserve appointment' }).click();
+  await expect(page.getByLabel('ID number')).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByLabel('Date of birth')).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByText('Enter a valid ID number (1–64 characters).')).toBeVisible();
+  await expect(
+    page.getByText('Enter a valid date of birth that is today or earlier.'),
+  ).toBeVisible();
+  const clientIdNumber = '0012/KaMaYa(N)000123';
+  const clientDateOfBirth = '1992-02-29';
+  await page.getByLabel('ID number').fill(clientIdNumber);
+  await page.getByLabel('Date of birth').fill('2999-01-01');
+  await page.getByRole('button', { name: 'Reserve appointment' }).click();
+  await expect(page.getByLabel('Date of birth')).toHaveAttribute('aria-invalid', 'true');
+  await page.getByLabel('Date of birth').fill(clientDateOfBirth);
+  await page.screenshot({
+    path: testInfo.outputPath('booking-details-desktop.png'),
+    fullPage: true,
+  });
+  const desktopViewport = page.viewportSize()!;
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.getByLabel('ID number')).toBeVisible();
+  await expect(page.getByLabel('Date of birth')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  await page.screenshot({
+    path: testInfo.outputPath('booking-details-mobile.png'),
+    fullPage: true,
+  });
+  await page.setViewportSize(desktopViewport);
+  const createdResponse = page.waitForResponse(
+    (response) =>
+      response.url().endsWith('/api/bookings') && response.request().method() === 'POST',
+  );
+  await page.getByRole('button', { name: 'Reserve appointment' }).click();
+  const bookingResponse = await createdResponse;
+  expect(bookingResponse.ok()).toBeTruthy();
+  expect(bookingResponse.request().postDataJSON().client).toMatchObject({
+    idNumber: clientIdNumber,
+    dateOfBirth: clientDateOfBirth,
+  });
+  const publicBooking = await bookingResponse.json();
+  expect(publicBooking).not.toHaveProperty('clientIdNumber');
+  expect(publicBooking).not.toHaveProperty('clientDateOfBirth');
   await expect(page.getByRole('heading', { name: 'Your time is on hold.' })).toBeVisible();
   await expect(page.locator('.appointment-details')).toContainText(chosenTime);
   await expect(page.locator('.appointment-details')).toContainText('Bahan');
@@ -112,6 +153,21 @@ test('client books, pays once, reloads, cancels and reception records the refund
   await expect(row).toBeVisible();
   await expect(row).toContainText(chosenTime);
   await expect(row).toContainText(/MMK\s*300/);
+  await row.locator('summary', { hasText: 'Consent details' }).click();
+  await expect(row.getByText(clientIdNumber, { exact: true })).toBeVisible();
+  await expect(row.getByText(clientDateOfBirth, { exact: true })).toBeVisible();
+  await staff.screenshot({
+    path: testInfo.outputPath('staff-consent-records.png'),
+    fullPage: true,
+  });
+  const refreshedRecords = staff.waitForResponse(
+    (response) =>
+      response.url().includes('/api/staff/bookings?') && response.request().method() === 'GET',
+  );
+  await staff.getByRole('button', { name: 'View appointments' }).click();
+  expect((await refreshedRecords).ok()).toBeTruthy();
+  await expect(row.getByText(clientIdNumber, { exact: true })).toHaveText(clientIdNumber);
+  await expect(row.getByText(clientDateOfBirth, { exact: true })).toHaveText(clientDateOfBirth);
   await row.getByRole('button', { name: 'Record demo refund' }).click();
   await staff.getByLabel('Refund reference').fill(`DEMO-E2E-${Date.now()}`);
   await staff.getByRole('button', { name: 'Record refund', exact: true }).click();
@@ -120,6 +176,7 @@ test('client books, pays once, reloads, cancels and reception records the refund
   await expect(page.getByText('Demo refund recorded.', { exact: true })).toBeVisible();
   await staff.getByRole('button', { name: 'Sign out' }).click();
   await expect(staff.getByLabel('Password')).toHaveValue('');
+  await expect(staff.getByText(clientIdNumber, { exact: true })).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 

@@ -1,7 +1,10 @@
 package com.lumina.clinic.booking;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.OptBoolean;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -16,6 +19,11 @@ public record CreateBookingRequest(
     public record ClientRequest(
         @NotBlank @Size(max = 120) String name,
         @NotBlank @Email @Size(max = 254) String email,
-        @NotBlank @Pattern(regexp = "[+0-9() .-]{7,30}", message = "must be a valid phone number") String phone
+        @NotBlank @Pattern(regexp = "[+0-9() .-]{7,30}", message = "must be a valid phone number") String phone,
+        @NotBlank @Size(max = 64)
+        @Pattern(regexp = "[^\\p{Cc}]+", message = "must not contain control characters") String idNumber,
+        @NotNull @PastOrPresent(message = "must not be in the future")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "uuuu-MM-dd", lenient = OptBoolean.FALSE)
+        LocalDate dateOfBirth
     ) {}
 }

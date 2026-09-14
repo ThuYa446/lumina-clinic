@@ -1065,6 +1065,24 @@
   td .text-button {
     display: block;
   }
+  .consent-details {
+    margin-top: 8px;
+  }
+  .consent-details summary {
+    cursor: pointer;
+    color: var(--muted);
+  }
+  .consent-details dl {
+    margin: 8px 0 0;
+  }
+  .consent-details dt {
+    color: var(--muted);
+    font-size: 10px;
+  }
+  .consent-details dd {
+    margin: 0 0 6px;
+    overflow-wrap: anywhere;
+  }
   .refund-card {
     max-width: 550px;
     margin-top: 30px;

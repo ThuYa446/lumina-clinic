@@ -17,7 +17,7 @@ The exercise PDF is a requirements source. Its submission instructions do not au
 | Payment hold | 15 minutes, enforced on subsequent reads/writes | Confirm duration and provider handling of late successful payments |
 | Cancellation | Allowed at least 24 hours before; otherwise contact reception | Confirm no-shows, late arrivals, partial refunds and exceptional overrides |
 | Refund | Eligible paid cancellation becomes refund pending | Assign staff responsibility and add provider reconciliation |
-| Client data | Name, email and phone; no ID number or date of birth | Agree privacy notice, lawful purpose, retention and clinical-consent boundary |
+| Client data | Name, email, phone, client ID number and date of birth are required for new bookings; ID/DOB are saved per booking and shown only to authenticated clinic staff | Agree privacy notice, retention and clinical-consent workflow; decide how staff obtain missing values on legacy bookings |
 | Diary | Database is authoritative for online bookings; staff can inspect it | Assisted bookings, future-paper-diary import and cutover process |
 | Notifications | On-screen confirmation and private retrieval | Email/WhatsApp provider and delivery/retry operation |
 
@@ -28,10 +28,10 @@ The code demonstrates independently calculated availability, resource reservatio
 ## What is intentionally incomplete
 
 - Payments are simulated. There is no gateway charge, signed webhook, settlement or automatic refund.
-- A demo code and email are not a real membership identity solution. The demonstration must use fictional contact details.
+- A demo code and email are not a real membership identity solution. The demonstration must use fictional client details, including ID numbers and dates of birth.
 - Staff access is a single configured account, not identity-provider SSO, MFA, individual accounts, access review or a complete audit trail.
 - The diary does not yet provide the full operations workflow: booking import, authenticated assisted bookings, roster editing, equipment downtime and staff overrides.
-- Retention/deletion automation, clinical consent, reminders, waiting lists and rescheduling need defined policies and further implementation.
+- Client ID number and date of birth storage is implemented. Retention/deletion automation, consent-form completion/signing, reminders, waiting lists and rescheduling need defined policies and further implementation.
 - Source is pushed to GitHub and CI passed. The [Render Free demo](https://lumina-clinic.onrender.com) is live in Ohio with Neon; public health and Myanmar/MMK catalogue checks passed. See the verification record for observed results and remaining operational limits.
 - The free review environment is not a production service commitment. Recovery procedures, monitoring alerts, load testing, backup policy and payment/security reviews are launch gates.
 

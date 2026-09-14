@@ -240,6 +240,44 @@
                 }
               </label>
             </div>
+            <p id="identity-purpose" class="small muted">
+              Your ID number and date of birth are kept for the clinic's consent records.
+            </p>
+            <div class="form-grid">
+              <label class="field"
+                >ID number<input
+                  formControlName="idNumber"
+                  type="text"
+                  autocomplete="off"
+                  maxlength="64"
+                  required
+                  [attr.aria-invalid]="invalid('idNumber')"
+                  aria-describedby="identity-purpose id-number-error"
+                />
+                @if (invalid('idNumber')) {
+                  <span id="id-number-error" class="field-error"
+                    >Enter a valid ID number (1–64 characters).</span
+                  >
+                }
+              </label>
+              <label class="field"
+                >Date of birth<input
+                  formControlName="dateOfBirth"
+                  type="date"
+                  autocomplete="bday"
+                  min="0001-01-01"
+                  [max]="today"
+                  required
+                  [attr.aria-invalid]="invalid('dateOfBirth')"
+                  aria-describedby="identity-purpose date-of-birth-error"
+                />
+                @if (invalid('dateOfBirth')) {
+                  <span id="date-of-birth-error" class="field-error"
+                    >Enter a valid date of birth that is today or earlier.</span
+                  >
+                }
+              </label>
+            </div>
             <div class="member-box">
               <span class="member-icon" aria-hidden="true">✧</span>
               <div>

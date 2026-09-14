@@ -12,7 +12,7 @@ The first release should protect three things: a room and qualified therapist re
 
 1. Choose a treatment, one of the six branches, and optionally a therapist.
 2. See times that fit both the treatment and room cleaning. Choose a date and time.
-3. Give a name, email and telephone number, and see the deposit and cancellation terms before booking.
+3. Give a name, email, telephone number, client ID number and date of birth, and see the deposit and cancellation terms before booking.
 4. Verified members receive confirmation without a deposit. Other clients temporarily reserve their slot and pay the 300 deposit through a payment page.
 5. See confirmation and a private booking reference. Clients can return to their booking and cancel within the permitted window.
 
@@ -30,7 +30,7 @@ The working demonstration includes this path and simulated payment. It does not 
 
 **Opening hours and services.** The six fictional branches are in Bahan, Kamayut, Sanchaung, Tamwe, Thingangyun and Yankin, Yangon. Appointments use Asia/Yangon (Myanmar time, UTC+06:30), as requested. We assume Monday–Saturday, 09:00–18:00. Rooms, treatment names, prices and therapists are demonstration data. We need actual addresses, branch hours, closures, staff rosters, room/equipment suitability and existing future appointments before opening any real availability.
 
-**Client identity and consent.** An appointment needs contact details. We propose keeping ID numbers and dates of birth out of phase-one booking storage. Confirm their specific consent-form purpose, access controls and retention with the clinic's responsible adviser before designing a separate clinical-consent workflow. Appointment booking alone does not constitute treatment consent.
+**Client identity and consent.** The brief asks the system to keep client ID numbers and dates of birth for laser consent forms. New bookings collect and store both alongside contact details, and authenticated clinic staff can view them in the diary. Existing bookings remain readable without these previously uncollected values. Confirm the privacy notice, staff responsibilities and retention before launch. Consent-form completion and signing remain separate work; appointment booking alone does not constitute treatment consent.
 
 ## Receptionists' role
 
@@ -49,7 +49,7 @@ Before launch, import or enter every future paper booking for the pilot branch a
 | 5 | Pilot one branch with staff training, imported appointments, monitoring, backup/restore rehearsal and accessibility checks. Reconcile the diary daily. |
 | 6 | Resolve pilot issues, obtain founder and reception sign-off, and expand gradually to the remaining branches. Keep a rollback decision point. |
 
-The budget is fixed, but its amount is not given. This is a scope proposal, not a price commitment. If payment onboarding or data preparation slips, reduce the rollout to a supervised single-branch pilot; do not remove concurrency protection or silently launch simulated payment as a real service. Defer loyalty redesign, marketing automation, clinical records, advanced reports and self-service roster administration.
+The budget is fixed, but its amount is not given. This is a scope proposal, not a price commitment. If payment onboarding or data preparation slips, reduce the rollout to a supervised single-branch pilot; do not remove concurrency protection or silently launch simulated payment as a real service. Defer loyalty redesign, marketing automation, a full clinical-record system, advanced reports and self-service roster administration.
 
 ## Hosting and launch decision
 

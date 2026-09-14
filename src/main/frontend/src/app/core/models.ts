@@ -44,7 +44,13 @@ export interface BookingRequest {
   treatmentId: string;
   therapistId: string;
   startsAt: string;
-  client: { name: string; email: string; phone: string };
+  client: {
+    name: string;
+    email: string;
+    phone: string;
+    idNumber: string;
+    dateOfBirth: string;
+  };
   membershipCode?: string;
 }
 export type BookingStatus = 'PENDING_PAYMENT' | 'CONFIRMED' | 'CANCELLED' | 'EXPIRED';
@@ -73,6 +79,8 @@ export interface PaymentResponse {
 export interface StaffBooking {
   id: string;
   clientName: string;
+  clientIdNumber: string | null;
+  clientDateOfBirth: string | null;
   branchName: string;
   treatmentName: string;
   therapistName: string;

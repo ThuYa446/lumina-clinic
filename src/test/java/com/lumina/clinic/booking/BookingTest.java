@@ -97,7 +97,8 @@ class BookingTest {
         Therapist therapist = mock(Therapist.class);
         when(therapist.getTurnaroundMinutes()).thenReturn(turnaroundMinutes);
         return Booking.reserve(mock(Branch.class), treatment, therapist, mock(Room.class),
-            new ClientDetails("Test Client", "TEST@example.com", "+95 9 123 456 789"), member,
+            new ClientDetails("Test Client", "TEST@example.com", "+95 9 123 456 789",
+                "12/ABC(N)123456", LocalDate.of(1990, 2, 3)), member,
             startsAt, createdAt, UUID.randomUUID(), "fingerprint");
     }
 }

@@ -93,7 +93,8 @@ public class BookingService {
         }
         Instant startsAt = request.startsAt().toInstant();
         policy.validateStart(startsAt, treatment.getDurationMinutes(), therapist.getTurnaroundMinutes(), now);
-        ClientDetails client = new ClientDetails(request.client().name(), request.client().email(), request.client().phone());
+        ClientDetails client = new ClientDetails(request.client().name(), request.client().email(), request.client().phone(),
+            request.client().idNumber(), request.client().dateOfBirth());
         boolean member = memberships.verify(client.getEmail(), request.membershipCode());
         Room room = availability.findRoom(rooms.findByBranchIdOrderByName(branch.getId()),
                 reservationsForDate(branch.getId(), startsAt.atZone(BookingPolicy.ZONE).toLocalDate()),
@@ -206,7 +207,8 @@ public class BookingService {
         return new StaffBookingResponse.Item(booking.getId(), booking.getClient().getName(), booking.getBranch().getName(),
             booking.getTreatment().getName(), booking.getTherapist().getName(), booking.getRoom().getName(),
             local(booking.getStartsAt()), local(booking.getEndsAt()), booking.getStatus(), booking.getPaymentStatus(),
-            booking.getDepositAmount(), booking.getCurrency(), booking.isMember(), booking.getRefundReference());
+            booking.getDepositAmount(), booking.getCurrency(), booking.isMember(), booking.getRefundReference(),
+            booking.getClient().getIdNumber(), booking.getClient().getDateOfBirth());
     }
 
     private static OffsetDateTime local(Instant instant) { return instant == null ? null : instant.atZone(BookingPolicy.ZONE).toOffsetDateTime(); }
@@ -215,6 +217,7 @@ public class BookingService {
         List<String> fields = List.of(request.branchId().toString(), request.treatmentId().toString(), request.therapistId().toString(),
             request.startsAt().toInstant().toString(), request.client().name().strip(),
             request.client().email().strip().toLowerCase(Locale.ROOT), request.client().phone().strip(),
+            request.client().idNumber().strip(), request.client().dateOfBirth().toString(),
             request.membershipCode() == null ? "" : request.membershipCode().strip());
         String canonical = fields.stream().map(value -> value.length() + ":" + value).reduce("", String::concat);
         try {

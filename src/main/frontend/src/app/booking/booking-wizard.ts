@@ -1,13 +1,28 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { catchError, map, of, Subject, switchMap } from 'rxjs';
 import { BookingAccess } from '../core/booking-access';
 import { ClinicApi, errorMessage } from '../core/clinic-api';
 import { clinicDate } from '../core/clinic-date';
 import { BookingRequest, Catalog, Slot } from '../core/models';
+
+const validDateOfBirth: ValidatorFn = (control) => {
+  const value = control.value as string;
+  if (!value) return null; // The required validator handles missing dates.
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || value < '0001-01-01') {
+    return { dateOfBirth: true };
+  }
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return Number.isNaN(parsed.getTime()) ||
+    parsed.toISOString().slice(0, 10) !== value ||
+    value > clinicDate()
+    ? { dateOfBirth: true }
+    : null;
+};
+
 @Component({
   selector: 'app-booking-wizard',
   imports: [CurrencyPipe, DatePipe, ReactiveFormsModule],
@@ -58,6 +73,15 @@ export class BookingWizard implements OnInit {
     ],
     email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
     phone: ['', [Validators.required, Validators.pattern(/^\+?[0-9 ()\-]{7,25}$/)]],
+    idNumber: [
+      '',
+      [
+        Validators.required,
+        Validators.maxLength(64),
+        Validators.pattern(/^(?=.*\S)[^\u0000-\u001f\u007f-\u009f]+$/u),
+      ],
+    ],
+    dateOfBirth: ['', [Validators.required, validDateOfBirth]],
     membershipCode: ['', Validators.maxLength(100)],
   });
   ngOnInit(): void {
@@ -131,7 +155,7 @@ export class BookingWizard implements OnInit {
     this.error.set('');
     document.getElementById('booking-heading')?.focus();
   }
-  invalid(field: 'name' | 'email' | 'phone'): boolean {
+  invalid(field: 'name' | 'email' | 'phone' | 'idNumber' | 'dateOfBirth'): boolean {
     const control = this.clientForm.controls[field];
     return control.invalid && control.touched;
   }
@@ -146,7 +170,13 @@ export class BookingWizard implements OnInit {
       treatmentId: this.treatmentId(),
       therapistId: slot.therapistId,
       startsAt: slot.startsAt,
-      client: { name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim() },
+      client: {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        idNumber: form.idNumber.trim(),
+        dateOfBirth: form.dateOfBirth,
+      },
       ...(form.membershipCode.trim() ? { membershipCode: form.membershipCode.trim() } : {}),
     };
     const payload = JSON.stringify(request);

@@ -81,6 +81,15 @@
                 </td>
                 <td [attr.data-booking-id]="booking.id">
                   {{ booking.clientName }}<small>{{ booking.member ? 'Member' : 'Guest' }}</small>
+                  <details class="consent-details">
+                    <summary>Consent details</summary>
+                    <dl>
+                      <dt>ID number</dt>
+                      <dd>{{ booking.clientIdNumber || 'Not recorded' }}</dd>
+                      <dt>Date of birth</dt>
+                      <dd>{{ booking.clientDateOfBirth || 'Not recorded' }}</dd>
+                    </dl>
+                  </details>
                 </td>
                 <td>
                   {{ booking.treatmentName

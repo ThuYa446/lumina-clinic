@@ -11,7 +11,7 @@ flowchart TD
     E --> F{A suitable room and therapist<br/>are free, including turnaround?}
     F -- No --> D
     F -- Yes --> G[Choose an offered time]
-    G --> H[Enter contact details; review cancellation and deposit terms]
+    G --> H[Enter contact details, client ID number and date of birth;<br/>review cancellation and deposit terms]
     H --> I[Submit booking with a stable idempotency key]
     I --> J[In one transaction: expire holds,<br/>recheck resources, reserve room and therapist]
     J --> K{Slot still available?}
@@ -39,5 +39,7 @@ flowchart TD
 ```
 
 Room occupancy is `[start, treatment end + 15 minutes)`. Therapist occupancy is `[start, treatment end + therapist turnaround)`. These independent intervals explain why a senior facialist can work back to back while a room still requires cleaning.
+
+New bookings require the client's ID number and date of birth for the clinic's consent records. Both are saved with the booking and viewable by authenticated staff in the diary; they are omitted from booking creation and management responses. Collecting these details does not complete or sign a treatment consent form.
 
 No scheduled worker is required to release capacity: booking and availability requests apply expiry using server time. Expired rows may remain marked held until such a request, but they must not prevent an eligible new booking after cleanup.
